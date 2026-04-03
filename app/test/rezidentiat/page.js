@@ -462,7 +462,7 @@ if (stare === 'picat' || stare === 'promovat') {
             {/* Întrebare */}
             <header className="space-y-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">
-                GRILA #{indexCurent + 1} DIN {INTREBARI.length}
+                Întrebarea{indexCurent + 1} DIN {INTREBARI.length}
               </p>
               <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">
                 {intrebareCurenta?.intrebare}

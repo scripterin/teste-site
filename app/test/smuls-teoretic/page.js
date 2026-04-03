@@ -310,7 +310,7 @@ if (stare === 'picat' || stare === 'promovat') {
              <h2 className="text-3xl font-black text-[#F0EAE8] tracking-tight">{admis ? 'ADMIS' : 'RESPINS'}</h2>
              
              <p className="text-[#8A7E7C] text-sm leading-relaxed">
-                {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii în timpul examinării.' : 'Ai acumulat numărul maxim de greșeli permise.')}
+                {admis ? 'Felicitări! Ai trecut testul.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii în timpul testului.' : 'Ai acumulat numărul maxim de greșeli permise.')}
              </p>
 
              <div className="grid grid-cols-2 gap-3 py-2">
@@ -377,7 +377,7 @@ if (stare === 'picat' || stare === 'promovat') {
             {/* Întrebare */}
             <header className="space-y-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">
-                GRILA #{indexCurent + 1} DIN {INTREBARI.length}
+                Întrebarea{indexCurent + 1} DIN {INTREBARI.length}
               </p>
               <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">
                 {intrebareCurenta?.intrebare}
