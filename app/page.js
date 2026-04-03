@@ -3,7 +3,6 @@
 import { useSession, signIn } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-// Importăm fontul Inter direct din Google Fonts via Next.js
 import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '700', '900'] });
@@ -31,20 +30,12 @@ export default function Home() {
       <style jsx global>{`
         .vignette-glow { background: radial-gradient(circle, rgba(142, 19, 12, 0.15) 0%, rgba(15, 13, 13, 0) 75%); }
         .discord-brand-subtle { color: #5865F2; opacity: 0.9; filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.3)); }
-        /* Fontul pentru titluri de impact */
         .font-fplayt { font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; }
       `}</style>
 
-      {/* Navbar Minimalist */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0F0D0D]/80 backdrop-blur-md border-b border-[#2E2724] h-[60px] flex justify-between items-center px-8">
-        <span className="text-2xl font-fplayt text-[#F0EAE8]">FPLAYT</span>
-        <div className="flex items-center gap-2 px-3 py-1 bg-[#1A1614] border border-[#2E2724] rounded-md">
-          <div className="w-2 h-2 rounded-full bg-[#C0392B] animate-pulse"></div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Server Status: Online</span>
-        </div>
-      </nav>
+      {/* Navbar-ul a fost eliminat de aici */}
 
-      <main className="flex-grow flex items-center justify-center relative z-10 px-6 py-20">
+      <main className="flex-grow flex items-center justify-center relative z-10 px-6 py-10">
         <div className="absolute inset-0 vignette-glow pointer-events-none"></div>
         
         <div className="relative w-full max-w-[420px] bg-[#141211] rounded-2xl border border-[#2E2724] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[3px] before:bg-[#C0392B]">
@@ -74,11 +65,13 @@ export default function Home() {
           
           <footer className="border-t border-[#2E2724] py-5 bg-[#0D0B0A] text-center">
             <p className="text-[9px] font-bold text-[#8A7E7C]/60 uppercase tracking-[0.3em]">
+              Sincronizare OAuth Securizată
             </p>
           </footer>
         </div>
       </main>
 
+      {/* Footer-ul de jos rămâne discret */}
       <footer className="fixed bottom-6 w-full flex justify-center items-center pointer-events-none opacity-30">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#E1BFB9]">
           Departamentul Medical FPLAYT
