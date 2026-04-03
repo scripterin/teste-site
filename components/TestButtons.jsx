@@ -1,6 +1,6 @@
 'use client';
 
-// ─── SVG Icons (Păstrate din varianta ta) ──────────────────────────────────
+// ─── SVG Icons (Păstrate) ──────────────────────────────────
 const IconRadio = ({ color = 'currentColor' }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <rect x="6" y="8" width="12" height="13" rx="2" />
@@ -28,7 +28,6 @@ const IconAmbulance = ({ color = 'currentColor' }) => (
   </svg>
 );
 
-// ─── Data (Testele tale reale) ────────────────────────────────────────────────
 const TESTS = [
   { id: 'RADIO', label: 'RADIO', Icon: IconRadio },
   { id: 'BLS', label: 'BLS', Icon: IconHeart },
@@ -38,15 +37,7 @@ const TESTS = [
 
 export default function TestButtons({ selected, onSelect }) {
   return (
-    <div 
-      style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(2, 1fr)', 
-        gap: '10px', 
-        width: '100%',
-        maxWidth: '500px'
-      }}
-    >
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', width: '100%', maxWidth: '500px' }}>
       {TESTS.map((test) => {
         const isSelected = selected === test.id;
         
@@ -60,12 +51,13 @@ export default function TestButtons({ selected, onSelect }) {
               justifyContent: 'flex-start',
               gap: '10px',
               padding: '12px 16px',
-              borderRadius: '999px', // Forma de "pastilă"
-              backgroundColor: '#231E1C', // Fundalul dark din noul design
+              borderRadius: '999px',
+              backgroundColor: '#231E1C',
               border: `1px solid ${isSelected ? '#C0392B' : '#2E2724'}`,
               color: isSelected ? '#C0392B' : '#8A7E7C',
               fontSize: '11px',
-              fontWeight: isSelected ? '800' : '600',
+              // MODIFICARE: Fontul rămâne la 600 indiferent de selecție
+              fontWeight: '600', 
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               cursor: 'pointer',
@@ -73,7 +65,6 @@ export default function TestButtons({ selected, onSelect }) {
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            {/* Cerculețul din stânga */}
             <div
               style={{
                 width: '6px',
@@ -81,11 +72,11 @@ export default function TestButtons({ selected, onSelect }) {
                 borderRadius: '50%',
                 backgroundColor: isSelected ? '#C0392B' : 'rgba(138,126,124,0.2)',
                 flexShrink: 0,
-                boxShadow: isSelected ? '0 0 10px #C0392B' : 'none'
+                boxShadow: isSelected ? '0 0 10px #C0392B' : 'none',
+                transition: 'all 0.2s ease'
               }}
             />
             
-            {/* Iconița mică lângă text */}
             <test.Icon color={isSelected ? '#C0392B' : '#8A7E7C'} />
             
             <span>{test.label}</span>
