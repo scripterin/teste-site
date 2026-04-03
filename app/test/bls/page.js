@@ -254,35 +254,47 @@ function TestBLSContent() {
   };
 
   // --- UI: Ecran Final (Admis/Respins) ---
-  if (stare === 'picat' || stare === 'promovat') {
+if (stare === 'picat' || stare === 'promovat') {
     const admis = stare === 'promovat';
     return (
       <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center p-6">
         <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl overflow-hidden relative">
           <div className={`absolute top-0 left-0 right-0 h-[2px] ${admis ? 'bg-green-500' : 'bg-[#C0392B]'}`} />
           <div className="p-8 text-center space-y-6">
-             <div className={`text-6xl ${admis ? 'text-green-500' : 'text-[#C0392B]'}`}>
-                {admis ? 'check_circle' : 'cancel'}
+             
+             {/* ICONITA REPARATA: Fara text "cancel" */}
+             <div className="flex justify-center">
+                {admis ? (
+                  <div className="w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 bg-[#C0392B]/10 border border-[#C0392B]/20 rounded-full flex items-center justify-center">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </div>
+                )}
              </div>
-             <h2 className="text-3xl font-black text-[#F0EAE8] tracking-tight">
-                {admis ? 'ADMIS' : 'RESPINS'}
-             </h2>
-             <p className="text-[#8A7E7C] text-sm">
-                {admis ? 'Felicitări! Ai trecut testul.' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina testului.' : 'Ai acumulat prea multe greșeli.')}
+
+             <h2 className="text-3xl font-black text-[#F0EAE8] tracking-tight">{admis ? 'ADMIS' : 'RESPINS'}</h2>
+             
+             <p className="text-[#8A7E7C] text-sm leading-relaxed">
+                {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii în timpul examinării.' : 'Ai acumulat numărul maxim de greșeli permise.')}
              </p>
-             <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="bg-[#231E1C] p-4 rounded-lg border border-[#2E2724]">
-                    <p className="text-[10px] uppercase tracking-widest text-[#8A7E7C]">Greșeli</p>
-                    <p className="text-xl font-bold text-[#F0EAE8]">{greseli}/3</p>
+
+             <div className="grid grid-cols-2 gap-3 py-2">
+                <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724] text-center">
+                  <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Greșeli</p>
+                  <p className={`text-lg font-black ${admis ? 'text-[#F0EAE8]' : 'text-[#C0392B]'}`}>{greseli}/3</p>
                 </div>
-                <div className="bg-[#231E1C] p-4 rounded-lg border border-[#2E2724]">
-                    <p className="text-[10px] uppercase tracking-widest text-[#8A7E7C]">Timp Utilizat</p>
-                    <p className="text-xl font-bold text-[#F0EAE8]">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
+                <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724] text-center">
+                  <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Timp</p>
+                  <p className="text-lg font-black text-[#F0EAE8]">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
                 </div>
              </div>
+
              <button 
-               onClick={() => router.push('/dashboard')}
-               className="w-full py-4 bg-[#C0392B] text-[#F0EAE8] rounded-lg font-bold uppercase tracking-widest hover:bg-[#A93226] transition-all"
+               onClick={() => router.push('/dashboard')} 
+               className="w-full py-4 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-lg font-bold uppercase tracking-widest transition-all active:scale-95"
              >
                Înapoi la Dashboard
              </button>
