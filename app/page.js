@@ -7,33 +7,25 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const [hasFinishedLoading, setHasFinishedLoading] = useState(false);
 
-  // 1. Ne asigurăm că componenta s-a încărcat în browser
+  // Forțăm un mic delay pentru a evita "flicker-ul" de loading
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (status !== 'loading') {
+      setHasFinishedLoading(true);
+    }
+  }, [status]);
 
-  // 2. Dacă NextAuth confirmă că ești logat, te trimitem la dashboard
+  // Dacă NextAuth confirmă că e logat, îl trimitem la dashboard
   useEffect(() => {
     if (status === 'authenticated') {
       router.push('/dashboard');
     }
   }, [status, router]);
 
-  // Prevenim erorile de server-side rendering pe Vercel
-  if (!mounted) return null;
+  // IMPORTANT: Dacă e logat, nu mai randăm nimic ca să lăsăm redirect-ul să meargă
+  if (status === 'authenticated') return null;
 
-  // 3. Dacă ești deja logat, nu mai arătăm butonul (ca să nu dea flash designul înainte de redirect)
-  if (status === 'authenticated') {
-    return (
-      <div className="min-h-screen bg-[#0F0D0D] flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-[#C0392B] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  // 4. DESIGNUL TĂU - Acum va apărea instantaneu
   return (
     <div className="dark bg-[#0F0D0D] text-[#e8e1e0] min-h-screen flex flex-col overflow-x-hidden font-['Inter'] relative">
       <style jsx global>{`
@@ -49,7 +41,7 @@ export default function Home() {
         }
       `}</style>
 
-      {/* Navbar */}
+      {/* Navbar - Rămâne fix sus */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0F0D0D] border-b border-[#2E2724] h-[52px] flex justify-between items-center px-6">
         <div className="flex items-center">
           <span className="text-xl font-black text-[#F0EAE8] tracking-[-0.02em]">FPLAYT</span>
@@ -67,6 +59,7 @@ export default function Home() {
       <main className="flex-grow flex items-center justify-center relative z-10 px-6 py-20">
         <div className="absolute inset-0 vignette-glow pointer-events-none"></div>
         
+        {/* CARDUL - Nu are condiție de ascundere, deci NU va dispărea */}
         <div className="relative w-full max-w-[440px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl overflow-hidden before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[2px] before:bg-[#C0392B]">
           <div className="p-10 space-y-8">
             <div className="flex flex-col items-center text-center space-y-4">
@@ -77,23 +70,30 @@ export default function Home() {
               </div>
               <h2 className="text-2xl font-bold text-[#F0EAE8] tracking-tight uppercase italic">Conectează contul Discord</h2>
               <p className="text-sm text-[#8A7E7C] leading-relaxed max-w-[320px]">
-                Pentru a continua procesul de examinare, trebuie să sincronizezi identitatea ta cu serverul nostru.
+                Sincronizează-ți identitatea pentru a accesa platforma medicală FPLAYT.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 pt-2">
               <button 
+                disabled={status === 'loading'}
                 onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
-                className="w-full py-4 bg-[#C0392B] text-[#F0EAE8] rounded-lg font-black text-sm flex items-center justify-center gap-3 hover:bg-[#A93226] transition-all active:scale-[0.98] shadow-lg shadow-[#C0392B]/10 uppercase tracking-widest cursor-pointer"
+                className={`w-full py-4 bg-[#C0392B] text-[#F0EAE8] rounded-lg font-black text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-lg shadow-[#C0392B]/10 uppercase tracking-widest ${status === 'loading' ? 'opacity-50 cursor-wait' : 'hover:bg-[#A93226] cursor-pointer'}`}
               >
-                AUTORIZEAZĂ FPLAYT CU DISCORD
-                <span className="material-symbols-outlined text-lg">login</span>
+                {status === 'loading' ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    AUTORIZEAZĂ CU DISCORD
+                    <span className="material-symbols-outlined text-lg">login</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
           <footer className="border-t border-[#2E2724] py-4 bg-[#141110]">
             <p className="text-[10px] text-center text-[#8A7E7C]/40 font-medium uppercase tracking-[0.1em]">
-              Protocol de securitate OAuth 2.0 activ
+              {status === 'loading' ? 'Se verifică sesiunea...' : 'Sistem de securitate activ'}
             </p>
           </footer>
         </div>
@@ -101,7 +101,7 @@ export default function Home() {
 
       <footer className="fixed bottom-4 w-full flex justify-center items-center pointer-events-none opacity-40">
         <p className="text-[10px] font-medium uppercase tracking-[0.05em] text-[#E1BFB9]/50">
-          Powered by FPLAYT · Sistem securizat
+          Powered by FPLAYT
         </p>
       </footer>
     </div>
