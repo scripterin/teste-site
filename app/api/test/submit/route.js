@@ -12,18 +12,21 @@ const COOLDOWN_ZILE = {
   'REZIDENȚIAT': 5,
 };
 
+/**
+ * Calculează data de expirare a cooldown-ului.
+ * Dacă azi e 03.04 și cooldown e 3 zile => 06.04
+ */
 function getCooldownDate(testName) {
   const zile = COOLDOWN_ZILE[testName] || 3;
+  const dataFinala = new Date(); // Data curentă (ex: 03.04)
 
-  const start = new Date();
-  start.setDate(start.getDate() + 1);
-  start.setHours(0, 0, 0, 0);
+  // Adăugăm numărul de zile direct la data curentă
+  dataFinala.setDate(dataFinala.getDate() + zile); 
+  
+  // Setăm la sfârșitul zilei pentru a fi validă până la ora 23:59
+  dataFinala.setHours(23, 59, 59, 999);
 
-  const end = new Date(start);
-  end.setDate(end.getDate() + (zile - 1));
-  end.setHours(23, 59, 59, 999);
-
-  return end;
+  return dataFinala;
 }
 
 export async function POST(request) {
@@ -46,7 +49,6 @@ export async function POST(request) {
     const userId = session.user.discordId;
     const username = session.user.username || session.user.name;
 
-
     const codeDoc = await Code.findOne({
       cod: cod.toUpperCase(),
       userId,
@@ -62,7 +64,10 @@ export async function POST(request) {
       await codeDoc.save();
     }
 
-    const admis = greseli <= 2 && motiv === 'finalizat';
+    // Calcul admis (Radio are prag de 2 greșeli, restul 3)
+    const pragGreseli = codeDoc.testSelectat === 'RADIO' ? 2 : 3;
+    const admis = greseli <= pragGreseli && motiv === 'finalizat';
+    
     const rezultat = admis ? 'ADMIS' : 'RESPINS';
     const esteAnticheat = motiv === 'anticheat';
 
@@ -75,7 +80,7 @@ export async function POST(request) {
         timeZone: 'Europe/Bucharest',
       });
 
-      // Trimite ambele embeds în paralel și loghează erori
+      // Trimite embeds în paralel
       const [rezPublic, rezConducere] = await Promise.allSettled([
         sendRezultatEmbed({
           username,
@@ -98,12 +103,8 @@ export async function POST(request) {
         }),
       ]);
 
-      if (rezPublic.status === 'rejected') {
-        console.error('[submit] sendRezultatEmbed failed:', rezPublic.reason);
-      }
-      if (rezConducere.status === 'rejected') {
-        console.error('[submit] sendRaportConducereEmbed failed:', rezConducere.reason);
-      }
+      if (rezPublic.status === 'rejected') console.error('[submit] sendRezultatEmbed failed:', rezPublic.reason);
+      if (rezConducere.status === 'rejected') console.error('[submit] sendRaportConducereEmbed failed:', rezConducere.reason);
 
       return NextResponse.json({
         success: true,
@@ -135,12 +136,8 @@ export async function POST(request) {
       }),
     ]);
 
-    if (rezPublic.status === 'rejected') {
-      console.error('[submit] sendRezultatEmbed failed:', rezPublic.reason);
-    }
-    if (rezConducere.status === 'rejected') {
-      console.error('[submit] sendRaportConducereEmbed failed:', rezConducere.reason);
-    }
+    if (rezPublic.status === 'rejected') console.error('[submit] sendRezultatEmbed failed:', rezPublic.reason);
+    if (rezConducere.status === 'rejected') console.error('[submit] sendRaportConducereEmbed failed:', rezConducere.reason);
 
     return NextResponse.json({ success: true, rezultat });
 
