@@ -72,7 +72,7 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (!res.ok) notify('error', data.error || 'Eroare la generare.');
-      else notify('success', 'Cod trimis pe Discord!');
+      else notify('success', 'Cod generat!');
     } catch { 
       notify('error', 'Eroare de conexiune la server.'); 
     } finally { 
@@ -97,7 +97,7 @@ export default function Dashboard() {
         notify('success', 'Acces Autorizat!');
       } else {
         setCodeValid(false);
-        notify('error', 'Cod de acces invalid.');
+        notify('error', 'Cod test invalid.');
       }
     } catch { 
       setCodeValid(false); 
@@ -109,7 +109,7 @@ export default function Dashboard() {
   const handleStartTest = () => {
     if (!codeValid) return;
     setCountdown(3);
-    notify('info', 'Inițializare mediu testare...');
+    notify('info', 'Te trimitem la test...');
   };
 
   useEffect(() => {
