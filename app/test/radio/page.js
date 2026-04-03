@@ -161,7 +161,6 @@ function TestRadioContent() {
   const stareRef = useRef('activ');
   const intrebariGresiteRef = useRef([]);
   const motivFinalRef = useRef('');
-  // Guard: submit fires exactly once per sesiune
   const submitFiredRef = useRef(false);
 
   // Anticheat
@@ -190,7 +189,6 @@ function TestRadioContent() {
   }, [stare]);
 
   const submitRezultat = useCallback((motiv) => {
-    // Dacă s-a trimis deja, ignorăm
     if (submitFiredRef.current) return;
     submitFiredRef.current = true;
 
@@ -216,7 +214,6 @@ function TestRadioContent() {
     stareRef.current = admis ? 'promovat' : 'picat';
     motivFinalRef.current = motiv;
 
-    // Submit imediat, sincron cu decizia — nu mai depindem de re-render
     submitRezultat(motiv);
 
     setMotivFinal(motiv);
@@ -224,7 +221,7 @@ function TestRadioContent() {
   }, [submitRezultat]);
 
   const handleConfirm = () => {
-    if (optiuneSelectata === null) return;
+    if (optiuneSelectata === null || !!feedback) return;
 
     const intrebareCurenta = INTREBARI[indexCurent];
     const esteGresit = optiuneSelectata !== intrebareCurenta.raspunsCorect;
@@ -236,16 +233,12 @@ function TestRadioContent() {
         raspunsdat: optiuneSelectata,
         raspunsCorect: intrebareCurenta.raspunsCorect,
       };
-      const nouIntrebariGresite = [...intrebariGresiteRef.current, nouaGreseala];
-      intrebariGresiteRef.current = nouIntrebariGresite;
-      setIntrebariGresite(nouIntrebariGresite);
+      intrebariGresiteRef.current.push(nouaGreseala);
+      greseliRef.current += 1;
+      setGreseli(greseliRef.current);
 
-      const noileGreseli = greseliRef.current + 1;
-      greseliRef.current = noileGreseli;
-      setGreseli(noileGreseli);
-
-      if (noileGreseli > MAX_GRESELI) {
-        setTimeout(() => terminaTest('greseli_maxime'), 800);
+      if (greseliRef.current > MAX_GRESELI) {
+        setTimeout(() => terminaTest('greseli_maxime'), 600);
         return;
       }
     } else {
@@ -260,7 +253,7 @@ function TestRadioContent() {
       } else {
         setIndexCurent((prev) => prev + 1);
       }
-    }, 800);
+    }, 600);
   };
 
   const formatTimp = (sec) => {
@@ -269,171 +262,139 @@ function TestRadioContent() {
     return `${m}:${s}`;
   };
 
-  const motivText = {
-    anticheat: '⚠️ Ai schimbat tab-ul în timpul testului.',
-    timp_expirat: '⏱️ Timpul a expirat.',
-    greseli_maxime: '❌ Ai atins numărul maxim de greșeli.',
-    finalizat: '',
-  };
-
+  // --- UI: Ecran Final ---
   if (stare === 'picat' || stare === 'promovat') {
     const admis = stare === 'promovat';
     return (
-      <div className="min-h-screen bg-[#020817] bg-grid scanlines flex items-center justify-center p-4">
-        <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-[#00B4D8] opacity-[0.04] rounded-full blur-[150px] pointer-events-none" />
-        <div className="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-[#E63946] opacity-[0.04] rounded-full blur-[150px] pointer-events-none" />
-
-        <div
-          className={`relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 max-w-lg w-full border ${admis ? 'border-[#00B4D8]/40' : 'border-[#E63946]/40'}`}
-          style={{ boxShadow: admis ? '0 0 40px rgba(0,180,216,0.1)' : '0 0 40px rgba(230,57,70,0.1)' }}
-        >
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">{admis ? '✅' : '❌'}</div>
-            <h1 className={`font-display text-4xl tracking-wider ${admis ? 'text-[#00B4D8] text-glow' : 'text-[#E63946] text-glow-red'}`}>
-              {admis ? 'ADMIS' : 'RESPINS'}
-            </h1>
-            {motivFinal && motivText[motivFinal] && (
-              <p className="text-white/40 mt-2 text-sm font-body">{motivText[motivFinal]}</p>
-            )}
+      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center p-6">
+        <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl overflow-hidden relative">
+          <div className={`absolute top-0 left-0 right-0 h-[2px] ${admis ? 'bg-green-500' : 'bg-[#C0392B]'}`} />
+          <div className="p-8 text-center space-y-6">
+             <div className="flex justify-center">
+                {admis ? (
+                  <div className="w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 bg-[#C0392B]/10 border border-[#C0392B]/20 rounded-full flex items-center justify-center">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </div>
+                )}
+             </div>
+             <h2 className="text-3xl font-black text-[#F0EAE8] tracking-tight">{admis ? 'ADMIS' : 'RESPINS'}</h2>
+             <p className="text-[#8A7E7C] text-sm">
+                {admis ? 'Felicitări! Ai trecut testul teoretic RADIO.' : (motivFinal === 'anticheat' ? 'Sistem detectat: părăsirea paginii.' : 'Limita de greșeli atinsă.')}
+             </p>
+             <div className="grid grid-cols-2 gap-3 py-2">
+                <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
+                  <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Greșeli</p>
+                  <p className={`text-lg font-black ${admis ? 'text-[#F0EAE8]' : 'text-[#C0392B]'}`}>{greseli}/3</p>
+                </div>
+                <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
+                  <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Timp</p>
+                  <p className="text-lg font-black text-[#F0EAE8]">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
+                </div>
+             </div>
+             <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-[#F0EAE8] rounded-lg font-bold uppercase tracking-widest hover:bg-[#A93226] transition-all">
+               Înapoi la Dashboard
+             </button>
           </div>
-
-          <div className="space-y-3 mb-8">
-            <div className="flex justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-              <span className="text-white/40 font-body text-sm">Test</span>
-              <span className="text-white font-body text-sm font-semibold">TEST TEORETIC: RADIO</span>
-            </div>
-            <div className="flex justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-              <span className="text-white/40 font-body text-sm">Greșeli</span>
-              <span className={`font-body text-sm font-semibold ${greseli >= 3 ? 'text-[#E63946]' : 'text-yellow-400'}`}>
-                {greseli} / 3
-              </span>
-            </div>
-            <div className="flex justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-              <span className="text-white/40 font-body text-sm">Timp rămas</span>
-              <span className="text-white font-body text-sm font-semibold">{formatTimp(timpRamas)}</span>
-            </div>
-          </div>
-
-          {submitting && (
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-4 h-4 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
-              <p className="text-white/30 text-xs font-body">Se trimite rezultatul...</p>
-            </div>
-          )}
-
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="btn-glow w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-body font-semibold py-3 rounded-xl transition-all duration-300"
-          >
-            ← Înapoi la Dashboard
-          </button>
         </div>
-      </div>
+      </main>
     );
   }
 
   const intrebareCurenta = INTREBARI[indexCurent];
-  const procentTimp = (timpRamas / TIMP_TOTAL) * 100;
-  const culoareTimer = timpRamas > 60 ? '#00B4D8' : timpRamas > 30 ? '#F77F00' : '#E63946';
 
   return (
-    <div className="min-h-screen bg-[#020817] bg-grid scanlines flex items-center justify-center p-4">
-      <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-[#00B4D8] opacity-[0.04] rounded-full blur-[150px] pointer-events-none" />
-      <div className="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-[#E63946] opacity-[0.04] rounded-full blur-[150px] pointer-events-none" />
+    <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(192,57,43,0.08)_0%,rgba(15,13,13,0)_70%)] pointer-events-none" />
+      
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0F0D0D] border-b border-[#2E2724] h-[52px] flex justify-between items-center px-6">
+        <span className="text-xl font-black text-[#F0EAE8] tracking-tighter flex items-center gap-1">
+          FPLAYT <span className="w-1.5 h-1.5 bg-[#C0392B] rounded-full" />
+        </span>
+      </nav>
 
-      <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-2xl w-full">
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h1 className="font-display text-white tracking-wider text-lg">TEST TEORETIC: RADIO</h1>
-            <p className="text-white/30 font-body text-xs mt-0.5">
-              Întrebarea <span className="text-[#00B4D8]">{indexCurent + 1}</span> din {INTREBARI.length}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className={`font-display text-3xl tracking-widest ${timpRamas <= 30 ? 'text-[#E63946] text-glow-red animate-pulse' : 'text-white'}`}>
-              {formatTimp(timpRamas)}
+      <div className="flex-grow flex items-center justify-center p-6 pt-20">
+        <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#C0392B]" />
+          
+          <div className="p-8 space-y-6">
+            <div className="flex justify-between items-center pb-4 border-b border-[#2E2724]">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Timp Rămas</p>
+                <div className={`text-lg font-black tabular-nums ${timpRamas < 60 ? 'text-[#C0392B] animate-pulse' : 'text-[#F0EAE8]'}`}>
+                  {formatTimp(timpRamas)}
+                </div>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Erori</p>
+                <div className="text-lg font-black text-[#C0392B]">{greseli}/3</div>
+              </div>
             </div>
-            <div className="text-white/30 font-body text-xs mt-0.5">
-              Greșeli:{' '}
-              <span className={greseli >= 3 ? 'text-[#E63946]' : 'text-yellow-400'}>
-                {greseli}/3
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Timer bar */}
-        <div className="w-full bg-white/5 rounded-full h-1.5 mb-6">
-          <div
-            className="h-1.5 rounded-full transition-all duration-1000"
-            style={{ width: `${procentTimp}%`, backgroundColor: culoareTimer, boxShadow: `0 0 8px ${culoareTimer}` }}
-          />
-        </div>
+            <header className="space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">EXAMINARE RADIO · #{indexCurent + 1}</p>
+              <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">{intrebareCurenta?.intrebare}</h2>
+            </header>
 
-        {/* Întrebare */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-5">
-          <p className="text-white font-body text-base leading-relaxed">{intrebareCurenta.intrebare}</p>
-        </div>
+            <section className="space-y-3">
+              {intrebareCurenta?.optiuni.map((optiune, i) => {
+                const isActive = optiuneSelectata === optiune;
+                return (
+                  <button
+                    key={i}
+                    disabled={!!feedback}
+                    onClick={() => setOptiuneSelectata(optiune)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all text-left group
+                      ${isActive 
+                        ? 'bg-[#C0392B] border-[#C0392B] shadow-lg shadow-[#C0392B]/10' 
+                        : 'bg-[#231E1C] border-[#2E2724] hover:border-[#C0392B]/50'
+                      }`}
+                  >
+                    <span className={`flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-xs font-bold transition-colors
+                      ${isActive ? 'bg-[#F0EAE8]/20 text-[#F0EAE8]' : 'bg-[#1A1614] border border-[#2E2724] text-[#8A7E7C]'}`}>
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    <span className="text-[13px] font-medium text-[#F0EAE8]">{optiune}</span>
+                  </button>
+                );
+              })}
+            </section>
 
-        {/* Opțiuni */}
-        <div className="space-y-3 mb-5">
-          {intrebareCurenta.optiuni.map((optiune, i) => {
-            const esteSelectata = optiuneSelectata === optiune;
-
-            let borderClass = 'border-white/10 hover:border-white/30';
-            let bgClass = 'bg-white/5 hover:bg-white/8';
-
-            if ((feedback === 'corect' && esteSelectata) || (!feedback && esteSelectata)) {
-              borderClass = 'border-[#00B4D8]/60';
-              bgClass = 'bg-[#00B4D8]/10';
-            }
-
-            return (
+            <div className="space-y-4 pt-4">
+              <div className="w-full bg-[#231E1C] h-1 rounded-full overflow-hidden">
+                <div 
+                  className="bg-[#C0392B] h-full transition-all duration-500" 
+                  style={{ width: `${((indexCurent + 1) / INTREBARI.length) * 100}%` }}
+                />
+              </div>
               <button
-                key={i}
-                onClick={() => !feedback && setOptiuneSelectata(optiune)}
-                disabled={!!feedback}
-                className={`w-full text-left px-4 py-3 rounded-xl border font-body text-sm text-white transition-all duration-200 ${borderClass} ${bgClass} disabled:cursor-default`}
+                onClick={handleConfirm}
+                disabled={!optiuneSelectata || !!feedback}
+                className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-[#F0EAE8] rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-[#A93226] transition-all active:scale-95"
               >
-                <span className="text-white/30 mr-3 font-display">{String.fromCharCode(65 + i)}.</span>
-                {optiune}
+                {feedback ? 'Procesare...' : 'Confirmă Răspunsul'}
               </button>
-            );
-          })}
-        </div>
-
-        {/* Confirm button */}
-        <button
-          onClick={handleConfirm}
-          disabled={optiuneSelectata === null || !!feedback}
-          className="w-full bg-[#00B4D8] hover:bg-[#0096b5] disabled:opacity-30 disabled:cursor-not-allowed text-white font-body font-bold py-3 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(0,180,216,0.3)] hover:shadow-[0_0_30px_rgba(0,180,216,0.5)]"
-        >
-          Confirmă răspunsul →
-        </button>
-
-        {/* Greșeli dots */}
-        <div className="flex gap-2 mt-4 justify-center">
-          {Array.from({ length: MAX_GRESELI + 1 }).map((_, i) => (
-            <div
-              key={i}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${i < greseli ? 'bg-[#E63946] shadow-[0_0_6px_#E63946]' : 'bg-white/10'}`}
-            />
-          ))}
+            </div>
+          </div>
+          
+          <footer className="border-t border-[#2E2724] py-3 bg-[#141110]">
+            <p className="text-[9px] text-center text-[#8A7E7C]/40 font-medium uppercase tracking-widest">
+              Sistem Securizat FPLAYT · Întrebarea {indexCurent + 1} / {INTREBARI.length}
+            </p>
+          </footer>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
 export default function TestRadio() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#020817] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#00B4D8] border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-[#0F0D0D]" />}>
       <TestRadioContent />
     </Suspense>
   );
