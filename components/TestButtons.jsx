@@ -1,119 +1,94 @@
 'use client';
 
-// ─── SVG Icons  ──────────────────────────────────
+// ─── SVG Icons (Păstrate din varianta ta) ──────────────────────────────────
 const IconRadio = ({ color = 'currentColor' }) => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <rect x="6" y="8" width="12" height="13" rx="2" />
-    <path d="M9 8V3" />
-    <path d="M9 11h6" />
-    <path d="M9 14h6" />
-    <path d="M9 17h3" />
-    <path d="M15 8V6" />
+    <path d="M9 8V3" /><path d="M9 11h6" /><path d="M9 14h6" /><path d="M9 17h3" /><path d="M15 8V6" />
   </svg>
 );
 
 const IconHeart = ({ color = 'currentColor' }) => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="10" width="18" height="6" rx="3" transform="rotate(-45 12 13)" />
-    <path d="M12 13 L8.5 16.5" />
-    <path d="M15.5 8 L18.5 11" />
-    <path d="M17 9.5 L20 6.5" />
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
   </svg>
 );
 
 const IconHospital = ({ color = 'currentColor' }) => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 18 L18 6 M6 18 L4 16 L14 6 L16 8 L6 18Z" />
-    <path d="M14 6 L18 2 L22 6 L18 10 L14 6Z" fill={color} stroke="none" />
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21h18M3 7v14m18-14v14M8 21V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14M9 9h6M9 13h6M9 17h6" />
   </svg>
 );
 
 const IconAmbulance = ({ color = 'currentColor' }) => (
-  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <rect x="1" y="8" width="15" height="11" rx="1" />
     <path d="M16 10h4l3 3v4h-7V10z" />
-    <circle cx="5.5" cy="19" r="1.5" />
-    <circle cx="18.5" cy="19" r="1.5" />
-    <line x1="6" y1="12" x2="10" y2="12" />
-    <line x1="8" y1="10" x2="8" y2="14" />
+    <circle cx="5.5" cy="19" r="1.5" /><circle cx="18.5" cy="19" r="1.5" />
   </svg>
 );
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
+// ─── Data (Testele tale reale) ────────────────────────────────────────────────
 const TESTS = [
-  { id: 'RADIO', label: 'RADIO', Icon: IconRadio, color: '#00B4D8', colorRgb: '0, 180, 216', desc: 'Comunicații radio medicale' },
-  { id: 'BLS', label: 'BLS', Icon: IconHeart, color: '#00B4D8', colorRgb: '0, 180, 216', desc: 'Basic Life Support' },
-  { id: 'REZIDENȚIAT', label: 'REZIDENȚIAT', Icon: IconHospital, color: '#9B5DE5', colorRgb: '155, 93, 229', desc: 'Examen de rezidențiat' },
-  { id: 'SMULS TEORETIC', label: 'SMULS TEORETIC', Icon: IconAmbulance, color: '#F77F00', colorRgb: '247, 127, 0', desc: 'Serviciu Medical Urgențe' },
+  { id: 'RADIO', label: 'RADIO', Icon: IconRadio },
+  { id: 'BLS', label: 'BLS', Icon: IconHeart },
+  { id: 'REZIDENȚIAT', label: 'REZIDENȚIAT', Icon: IconHospital },
+  { id: 'SMULS TEORETIC', label: 'SMULS TEORETIC', Icon: IconAmbulance },
 ];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TestButtons({ selected, onSelect }) {
   return (
-    <div className="grid grid-cols-2 gap-6 w-full max-w-2xl px-4">
+    <div 
+      style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(2, 1fr)', 
+        gap: '10px', 
+        width: '100%',
+        maxWidth: '500px'
+      }}
+    >
       {TESTS.map((test) => {
         const isSelected = selected === test.id;
+        
         return (
           <button
             key={test.id}
             onClick={() => onSelect(test.id)}
-            className={`group relative flex flex-col items-center gap-3 p-8 rounded-[2rem] border-2 transition-all duration-500 overflow-hidden ${
-              isSelected 
-                ? 'bg-white/[0.08] backdrop-blur-md' 
-                : 'bg-white/[0.02] backdrop-blur-sm border-white/5 hover:bg-white/[0.05] hover:border-white/10'
-            }`}
             style={{
-              borderColor: isSelected ? test.color : undefined,
-              boxShadow: isSelected
-                ? `0 0 30px rgba(${test.colorRgb}, 0.15), inset 0 0 20px rgba(${test.colorRgb}, 0.05)`
-                : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              gap: '10px',
+              padding: '12px 16px',
+              borderRadius: '999px', // Forma de "pastilă"
+              backgroundColor: '#231E1C', // Fundalul dark din noul design
+              border: `1px solid ${isSelected ? '#C0392B' : '#2E2724'}`,
+              color: isSelected ? '#C0392B' : '#8A7E7C',
+              fontSize: '11px',
+              fontWeight: isSelected ? '800' : '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontFamily: 'Inter, sans-serif',
             }}
           >
-            {/* Background Glow Interior */}
-            {isSelected && (
-              <div 
-                className="absolute -top-10 -right-10 w-24 h-24 blur-3xl opacity-20 pointer-events-none"
-                style={{ background: test.color }}
-              />
-            )}
-
-            {/* Icon cu efect de iluminare */}
+            {/* Cerculețul din stânga */}
             <div
-              className="transition-all duration-500"
               style={{
-                filter: isSelected
-                  ? `drop-shadow(0 0 12px ${test.color})`
-                  : 'grayscale(1) opacity(0.3)',
-                transform: isSelected ? 'scale(1.15) translateY(-5px)' : 'scale(1)',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: isSelected ? '#C0392B' : 'rgba(138,126,124,0.2)',
+                flexShrink: 0,
+                boxShadow: isSelected ? '0 0 10px #C0392B' : 'none'
               }}
-            >
-              <test.Icon color={isSelected ? test.color : 'white'} />
-            </div>
-
-            {/* Label */}
-            <span
-              className="font-display text-xl tracking-[0.2em] font-bold transition-colors duration-300"
-              style={{ color: isSelected ? 'white' : 'rgba(255,255,255,0.2)' }}
-            >
-              {test.label}
-            </span>
-
-            {/* Descriere */}
-            <span className={`font-body text-[10px] uppercase tracking-wider transition-opacity duration-300 ${
-              isSelected ? 'opacity-40 text-white' : 'opacity-10 text-white'
-            }`}>
-              {test.desc}
-            </span>
-
-            {/* Indicator colț subtil */}
-            {isSelected && (
-              <div 
-                className="absolute top-4 right-4 w-1.5 h-1.5 rounded-full animate-ping"
-                style={{ background: test.color }}
-              />
-            )}
+            />
+            
+            {/* Iconița mică lângă text */}
+            <test.Icon color={isSelected ? '#C0392B' : '#8A7E7C'} />
+            
+            <span>{test.label}</span>
           </button>
         );
       })}
