@@ -337,7 +337,7 @@ if (stare === 'picat' || stare === 'promovat') {
               <div className="text-right space-y-1">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Greșeli</p>
                 <div className="text-lg font-black text-[#C0392B] flex items-center justify-end gap-1">
-                  {greseli}/3 <span className="material-symbols-outlined text-sm">warning</span>
+                  {greseli}/3
                 </div>
               </div>
             </div>
