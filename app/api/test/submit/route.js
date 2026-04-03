@@ -46,10 +46,7 @@ export async function POST(request) {
     const userId = session.user.discordId;
     const username = session.user.username || session.user.name;
 
-    // Caută codul indiferent de starea `used` — fix principal
-    // Validate-code marchează used:true, dar dacă testul se termină
-    // foarte repede (anticheat, 3 greșeli rapide), e posibil ca
-    // PATCH-ul să nu fi ajuns încă sau să fi eșuat.
+
     const codeDoc = await Code.findOne({
       cod: cod.toUpperCase(),
       userId,
@@ -60,7 +57,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Cod invalid sau testul nu a fost început corect.' }, { status: 400 });
     }
 
-    // Dacă nu era marcat ca used, îl marcăm acum
     if (!codeDoc.used) {
       codeDoc.used = true;
       await codeDoc.save();

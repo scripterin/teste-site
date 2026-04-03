@@ -259,7 +259,7 @@ const INTREBARI = [
 const TIMP_TOTAL = 360;
 const MAX_GRESELI = 2;
 
-function TestSMULSContent() {
+function TestRezidentiatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cod = searchParams.get('cod');
@@ -272,12 +272,12 @@ function TestSMULSContent() {
   const [motivFinal, setMotivFinal] = useState('');
   const [feedback, setFeedback] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitDone, setSubmitDone] = useState(false);
 
   const timpRamasRef = useRef(TIMP_TOTAL);
   const greseliRef = useRef(0);
   const stareRef = useRef('activ');
   const intrebariGresiteRef = useRef([]);
-  const submitFiredRef = useRef(false);
 
   // Anticheat
   useEffect(() => {
@@ -308,28 +308,9 @@ function TestSMULSContent() {
     if (stareRef.current !== 'activ') return;
     const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
     stareRef.current = admis ? 'promovat' : 'picat';
-
-    if (!submitFiredRef.current) {
-      submitFiredRef.current = true;
-      setSubmitting(true);
-      fetch('/api/test/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cod,
-          greseli: greseliRef.current,
-          timpRamas: timpRamasRef.current,
-          intrebariGresite: intrebariGresiteRef.current,
-          motiv,
-        }),
-      })
-        .catch(console.error)
-        .finally(() => setSubmitting(false));
-    }
-
     setMotivFinal(motiv);
     setStare(admis ? 'promovat' : 'picat');
-  }, [cod]);
+  }, []);
 
   const handleConfirm = () => {
     if (optiuneSelectata === null || !!feedback) return;
@@ -366,12 +347,35 @@ function TestSMULSContent() {
     }, 600);
   };
 
+  // Trimitere API
+  useEffect(() => {
+    if ((stare === 'picat' || stare === 'promovat') && !submitDone) {
+      setSubmitDone(true);
+      setSubmitting(true);
+      const motiv = stare === 'promovat' ? 'finalizat' : motivFinal;
+      fetch('/api/test/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cod,
+          greseli: greseliRef.current,
+          timpRamas: timpRamasRef.current,
+          intrebariGresite: intrebariGresiteRef.current,
+          motiv,
+        }),
+      })
+        .catch(console.error)
+        .finally(() => setSubmitting(false));
+    }
+  }, [stare, cod, motivFinal, submitDone]);
+
   const formatTimp = (sec) => {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
 
+  // UI ECRAN FINAL
   if (stare === 'picat' || stare === 'promovat') {
     const admis = stare === 'promovat';
     return (
@@ -391,9 +395,7 @@ function TestSMULSContent() {
                 )}
              </div>
              <h2 className="text-3xl font-black text-[#F0EAE8] tracking-tight">{admis ? 'ADMIS' : 'RESPINS'}</h2>
-             <p className="text-[#8A7E7C] text-sm">
-                {admis ? 'Felicitări! Ai trecut testul teoretic SMULS.' : (motivFinal === 'anticheat' ? 'Sistem detectat: părăsirea paginii.' : 'Limita de greșeli atinsă.')}
-             </p>
+             <p className="text-[#8A7E7C] text-sm uppercase tracking-widest font-bold">Rezidențiat Medical</p>
              <div className="grid grid-cols-2 gap-3 py-2">
                 <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
                   <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Greșeli</p>
@@ -438,13 +440,13 @@ function TestSMULSContent() {
                 </div>
               </div>
               <div className="text-right space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Erori</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Greșeli</p>
                 <div className="text-lg font-black text-[#C0392B]">{greseli}/3</div>
               </div>
             </div>
 
             <header className="space-y-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">EXAMINARE SMULS · #{indexCurent + 1}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">EXAMINARE REZIDENȚIAT · #{indexCurent + 1}</p>
               <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">{intrebareCurenta?.intrebare}</h2>
             </header>
 
@@ -484,14 +486,14 @@ function TestSMULSContent() {
                 disabled={!optiuneSelectata || !!feedback}
                 className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-[#F0EAE8] rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-[#A93226] transition-all"
               >
-                {feedback ? 'Se procesează...' : 'Confirmă Răspunsul'}
+                {feedback ? 'Se verifică...' : 'Confirmă Răspunsul'}
               </button>
             </div>
           </div>
           
           <footer className="border-t border-[#2E2724] py-3 bg-[#141110]">
             <p className="text-[9px] text-center text-[#8A7E7C]/40 font-medium uppercase tracking-widest">
-              Sistem Securizat FPLAYT · {indexCurent + 1} / {INTREBARI.length}
+              Sistem Medical FPLAYT · {indexCurent + 1} / {INTREBARI.length}
             </p>
           </footer>
         </div>
@@ -500,10 +502,10 @@ function TestSMULSContent() {
   );
 }
 
-export default function TestSMULS() {
+export default function TestRezidentiat() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#0F0D0D]" />}>
-      <TestSMULSContent />
+      <TestRezidentiatContent />
     </Suspense>
   );
 }
