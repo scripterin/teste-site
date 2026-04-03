@@ -6,12 +6,7 @@ export const authOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      authorization: {
-        params: {
-          scope: 'identify',
-
-        },
-      },
+      authorization: { params: { scope: 'identify' } },
     }),
   ],
   callbacks: {
@@ -19,7 +14,6 @@ export const authOptions = {
       if (account && profile) {
         token.discordId = profile.id;
         token.username = profile.username;
-        token.discriminator = profile.discriminator;
         token.avatar = profile.avatar;
       }
       return token;
@@ -28,11 +22,9 @@ export const authOptions = {
       if (token) {
         session.user.discordId = token.discordId;
         session.user.username = token.username;
-        session.user.discriminator = token.discriminator;
         session.user.avatar = token.avatar
           ? `https://cdn.discordapp.com/avatars/${token.discordId}/${token.avatar}.png`
-          : `https://cdn.discordapp.com/embed/avatars/${parseInt(token.discriminator || '0') % 5}.png`;
-        delete session.user.email;
+          : `https://cdn.discordapp.com/embed/avatars/0.png`;
       }
       return session;
     },
@@ -41,20 +33,17 @@ export const authOptions = {
     signIn: '/',
     error: '/',
   },
-  secret: process.env.NEXTAUTH_SECRET ?? "b5SKikTFcEzlu5bO0qoUneiaeX8PtLnj",
-  session: {
-    strategy: 'jwt',
-    maxAge: 24 * 60 * 60, 
-  },
+  secret: process.env.NEXTAUTH_SECRET,
+  session: { strategy: 'jwt' },
+  // CONFIGURAȚIE CORECTĂ PENTRU VERCEL:
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name: process.env.NODE_ENV === 'production' ? `__Secure-next-auth.session-token` : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-
       },
     },
   },
