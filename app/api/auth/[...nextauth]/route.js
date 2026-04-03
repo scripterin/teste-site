@@ -9,6 +9,7 @@ export const authOptions = {
       authorization: {
         params: {
           scope: 'identify',
+
         },
       },
     }),
@@ -43,7 +44,19 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET ?? "b5SKikTFcEzlu5bO0qoUneiaeX8PtLnj",
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 zile (default NextAuth
+    maxAge: 24 * 60 * 60, 
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+
+      },
+    },
   },
 };
 
