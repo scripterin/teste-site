@@ -147,13 +147,13 @@ export default function Dashboard() {
             
             <header>
               <p style={{ fontSize: 10, fontWeight: 800, color: '#C0392B', letterSpacing: '0.25em', marginBottom: 8 }}>
-                TERMINAL EXAMINARE V2.0
+                SITE TESTE
               </p>
               <h1 style={{ fontSize: 28, fontWeight: 900, color: '#F0EAE8', letterSpacing: '-0.02em', margin: 0 }}>
                 DEP. MEDICAL <span style={{ color: '#C0392B' }}>FPLAYT</span>
               </h1>
               <p style={{ fontSize: 13, color: '#8A7E7C', marginTop: 8, lineHeight: 1.5 }}>
-                Selectați testul și introduceți codul de acces generat.
+                Selectează testul pe care dorești să îl susții
               </p>
             </header>
 
@@ -165,7 +165,7 @@ export default function Dashboard() {
 
             {/* Input Cod */}
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>COD DE ACCES SECURIZAT</label>
+              <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>COD TEST</label>
               <input
                 type="text"
                 value={code}
@@ -190,7 +190,7 @@ export default function Dashboard() {
                   width: '100%', padding: '16px', backgroundColor: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: (loadingGenerate || !selectedTest) ? 'not-allowed' : 'pointer', opacity: (loadingGenerate || !selectedTest) ? 0.4 : 1, transition: 'all 0.2s'
                 }}
               >
-                {loadingGenerate ? 'Generare...' : 'Solicită Cod Discord'}
+                {loadingGenerate ? 'Generare...' : 'Solicită Cod'}
               </button>
 
               <button
@@ -200,14 +200,14 @@ export default function Dashboard() {
                   width: '100%', padding: '16px', backgroundColor: codeValid ? '#C0392B' : '#2E2724', border: 'none', color: codeValid ? '#FFF' : '#8A7E7C', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: (!codeValid || countdown !== null) ? 'not-allowed' : 'pointer', transition: 'all 0.2s'
                 }}
               >
-                {countdown !== null ? `Inițializare (${countdown})` : 'Începe Examinarea'}
+                {countdown !== null ? `Inițializare (${countdown})` : 'Începe Testul'}
               </button>
             </div>
 
           </div>
 
           <footer style={{ backgroundColor: '#141110', padding: '12px', borderTop: '1px solid #2E2724', textAlign: 'center' }}>
-            <p style={{ fontSize: 9, color: '#4A4240', letterSpacing: '0.1em', margin: 0, fontWeight: 600 }}>SISTEM DE ACCES SECURIZAT · FPLAYT MEDICAL</p>
+            <p style={{ fontSize: 9, color: '#4A4240', letterSpacing: '0.1em', margin: 0, fontWeight: 600 }}>ECLIPSE MEDICAL TOWER</p>
           </footer>
         </div>
       </main>
