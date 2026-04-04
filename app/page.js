@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signIn } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Inter } from 'next/font/google';
@@ -12,10 +12,13 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Dacă are sesiune activă, o distrugem imediat
     if (status === 'authenticated') {
-      router.push('/dashboard');
+      signOut({ redirect: false }).then(() => {
+        router.refresh();
+      });
     }
-  }, [status, router]);
+  }, [status]);
 
   if (status === 'authenticated') {
     return (
