@@ -13,16 +13,9 @@ export default function Home() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      const justLoggedIn = sessionStorage.getItem('justLoggedIn');
-      
-      if (justLoggedIn) {
-        sessionStorage.removeItem('justLoggedIn');
-        router.push('/dashboard');
-      } else {
-        signOut({ redirect: false }).then(() => {
-          router.refresh();
-        });
-      }
+      signOut({ redirect: false }).then(() => {
+        router.refresh();
+      });
     }
   }, [status]);
 
@@ -62,10 +55,7 @@ export default function Home() {
             </div>
 
             <button 
-              onClick={() => {
-                sessionStorage.setItem('justLoggedIn', 'true');
-                signIn('discord');
-              }}
+              onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
               className="group relative w-full py-5 bg-[#C0392B] text-white rounded-xl font-black text-sm transition-all hover:bg-[#A93226] active:scale-[0.98] shadow-[0_10px_20px_rgba(192,57,43,0.2)] uppercase tracking-[0.2em] overflow-hidden"
             >
               <span className="relative z-10">Conectează-te acum</span>
