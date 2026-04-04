@@ -39,6 +39,16 @@ body {
   -ms-overflow-style: none;
 }
 
+body {
+  color: white;
+  font-family: 'Inter', sans-serif;
+  background-image: url('/image.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 /* Background animated grid */
 .bg-grid {
   background-image: 
