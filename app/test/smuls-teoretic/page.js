@@ -342,16 +342,6 @@ if (stare === 'picat' || stare === 'promovat') {
   return (
     <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(192,57,43,0.08)_0%,rgba(15,13,13,0)_70%)] pointer-events-none" />
-      
-      {/* Navbar Minimalist */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0F0D0D] border-b border-[#2E2724] h-[52px] flex justify-between items-center px-6">
-        <span className="text-xl font-black text-[#F0EAE8] tracking-tighter flex items-center gap-1">
-          FPLAYT <span className="w-1.5 h-1.5 bg-[#C0392B] rounded-full" />
-        </span>
-        <div className="text-xs font-bold text-[#8A7E7C] uppercase tracking-[0.2em]">
-          Examinare Activă
-        </div>
-      </nav>
 
       <div className="flex-grow flex items-center justify-center p-6 pt-20">
         <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl relative overflow-hidden">
@@ -377,7 +367,7 @@ if (stare === 'picat' || stare === 'promovat') {
             {/* Întrebare */}
             <header className="space-y-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">
-                Întrebarea{indexCurent + 1} DIN {INTREBARI.length}
+                Întrebarea {indexCurent + 1} DIN {INTREBARI.length}
               </p>
               <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">
                 {intrebareCurenta?.intrebare}
