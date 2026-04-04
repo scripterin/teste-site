@@ -49,9 +49,12 @@ export default function Dashboard() {
   const [countdown, setCountdown] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') router.push('/');
-  }, [status, router]);
+useEffect(() => {
+  if (status === 'unauthenticated') {
+    const timer = setTimeout(() => router.push('/'), 500);
+    return () => clearTimeout(timer);
+  }
+}, [status, router]);
 
   useEffect(() => {
     if (code.length === 6) handleValidateCode();
