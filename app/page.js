@@ -11,23 +11,20 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-useEffect(() => {
-  if (status === 'authenticated') {
-    // Verificăm dacă userul vine din fluxul OAuth (tocmai s-a logat)
-    const justLoggedIn = sessionStorage.getItem('justLoggedIn');
-    
-    if (justLoggedIn) {
-      // Vine din OAuth → trimite la dashboard
-      sessionStorage.removeItem('justLoggedIn');
-      router.push('/dashboard');
-    } else {
-      // A revenit pe site → logout automat
-      signOut({ redirect: false }).then(() => {
-        router.refresh();
-      });
+  useEffect(() => {
+    if (status === 'authenticated') {
+      const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+      
+      if (justLoggedIn) {
+        sessionStorage.removeItem('justLoggedIn');
+        router.push('/dashboard');
+      } else {
+        signOut({ redirect: false }).then(() => {
+          router.refresh();
+        });
+      }
     }
-  }
-}, [status]);
+  }, [status]);
 
   if (status === 'authenticated') {
     return (
@@ -44,8 +41,6 @@ useEffect(() => {
         .discord-brand-subtle { color: #5865F2; opacity: 0.9; filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.3)); }
         .font-fplayt { font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; }
       `}</style>
-
-      {/* Navbar-ul a fost eliminat de aici */}
 
       <main className="flex-grow flex items-center justify-center relative z-10 px-6 py-10">
         <div className="absolute inset-0 vignette-glow pointer-events-none"></div>
@@ -67,7 +62,10 @@ useEffect(() => {
             </div>
 
             <button 
-              onClick={() => signIn('discord')}
+              onClick={() => {
+                sessionStorage.setItem('justLoggedIn', 'true');
+                signIn('discord');
+              }}
               className="group relative w-full py-5 bg-[#C0392B] text-white rounded-xl font-black text-sm transition-all hover:bg-[#A93226] active:scale-[0.98] shadow-[0_10px_20px_rgba(192,57,43,0.2)] uppercase tracking-[0.2em] overflow-hidden"
             >
               <span className="relative z-10">Conectează-te acum</span>
@@ -83,7 +81,6 @@ useEffect(() => {
         </div>
       </main>
 
-      {/* Footer-ul de jos rămâne discret */}
       <footer className="fixed bottom-6 w-full flex justify-center items-center pointer-events-none opacity-30">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#E1BFB9]">
           Departamentul Medical FPLAYT
