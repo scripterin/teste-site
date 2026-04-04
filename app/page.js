@@ -11,14 +11,23 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    // Dacă are sesiune activă, o distrugem imediat
-    if (status === 'authenticated') {
+useEffect(() => {
+  if (status === 'authenticated') {
+    // Verificăm dacă userul vine din fluxul OAuth (tocmai s-a logat)
+    const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+    
+    if (justLoggedIn) {
+      // Vine din OAuth → trimite la dashboard
+      sessionStorage.removeItem('justLoggedIn');
+      router.push('/dashboard');
+    } else {
+      // A revenit pe site → logout automat
       signOut({ redirect: false }).then(() => {
         router.refresh();
       });
     }
-  }, [status]);
+  }
+}, [status]);
 
   if (status === 'authenticated') {
     return (
