@@ -86,11 +86,11 @@ const INTREBARI = [
     intrebare: 'Pacient cu căi respiratorii blocate și fără puls. Care este primul pas?',
     optiuni: [
       'Administrare de adrenalină',
-      'Eliberarea căilor respiratorii și RCP',
+      'Eliberarea căilor respiratorii și CPR',
       'Poziție laterală de siguranță',
       'Curățarea zonei cu betadină'
     ],
-    raspunsCorect: 'Eliberarea căilor respiratorii și RCP'
+    raspunsCorect: 'Eliberarea căilor respiratorii și CPR'
   },
   {
     id: 9,
