@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { INTREBARI_RADIO } from '@/lib/questions/radio';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/authOptions';
 
 function seededShuffle<T>(array: T[], seed: string): T[] {
   const arr = [...array];
@@ -18,7 +19,7 @@ function seededShuffle<T>(array: T[], seed: string): T[] {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions as any);
   if (!session) {
     return NextResponse.json({ error: 'Neautorizat' }, { status: 401 });
   }
@@ -29,7 +30,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Date invalide' }, { status: 400 });
   }
 
-  // Reconstituim același shuffle de pe server
   const intrebariAmestecate = seededShuffle(INTREBARI_RADIO, cod ?? 'default');
   const intrebare = intrebariAmestecate[index];
 
@@ -39,5 +39,8 @@ export async function POST(req: NextRequest) {
 
   const corect = raspunsUser.trim() === intrebare.raspunsCorect.trim();
 
-  return NextResponse.json({ corect });
+  return NextResponse.json({
+    corect,
+    raspunsCorect: corect ? undefined : intrebare.raspunsCorect,
+  });
 }

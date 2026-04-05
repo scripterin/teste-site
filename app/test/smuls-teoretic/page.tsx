@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-
 const TIMP_TOTAL = 180;
 const MAX_GRESELI = 2;
 
@@ -22,7 +21,6 @@ function TestSMULSContent() {
   const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
   const [totalIntrebari, setTotalIntrebari] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
   const [indexCurent, setIndexCurent] = useState(0);
   const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
@@ -38,7 +36,6 @@ function TestSMULSContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // Încarcă întrebarea curentă de la server
   const incarcaIntrebare = useCallback(async (index: number) => {
     setIsLoading(true);
     try {
@@ -54,16 +51,11 @@ function TestSMULSContent() {
     }
   }, [cod]);
 
-  // Încarcă prima întrebare la mount
-  useEffect(() => {
-    incarcaIntrebare(0);
-  }, [incarcaIntrebare]);
+  useEffect(() => { incarcaIntrebare(0); }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && stareRef.current === 'activ') {
-        terminaTest('anticheat');
-      }
+      if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -74,10 +66,7 @@ function TestSMULSContent() {
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
-      if (timpRamasRef.current <= 0) {
-        clearInterval(interval);
-        terminaTest('timp_expirat');
-      }
+      if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
     }, 1000);
     return () => clearInterval(interval);
   }, [stare, isLoading]);
@@ -95,18 +84,16 @@ function TestSMULSContent() {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
 
     let corect = false;
+    let raspunsCorect = '';
     try {
       const res = await fetch('/api/test/smuls-teoretic/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          index: indexCurent,
-          raspunsUser: optiuneSelectata,
-          cod: cod ?? '',
-        }),
+        body: JSON.stringify({ index: indexCurent, raspunsUser: optiuneSelectata, cod: cod ?? '' }),
       });
       const data = await res.json();
       corect = data.corect;
+      raspunsCorect = data.raspunsCorect ?? '';
     } catch (e) {
       console.error('Eroare la verificare:', e);
       return;
@@ -117,15 +104,11 @@ function TestSMULSContent() {
       intrebariGresiteRef.current.push({
         intrebare: intrebareCurenta.intrebare,
         raspunsdat: optiuneSelectata,
-        // Nu stim raspunsul corect pe client — e intentionat
+        raspunsCorect: raspunsCorect,
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
-
-      if (greseliRef.current > MAX_GRESELI) {
-        setTimeout(() => terminaTest('greseli_maxime'), 600);
-        return;
-      }
+      if (greseliRef.current > MAX_GRESELI) { setTimeout(() => terminaTest('greseli_maxime'), 600); return; }
     } else {
       setFeedback('corect');
     }
@@ -168,11 +151,7 @@ function TestSMULSContent() {
   };
 
   if (isLoading || !intrebareCurenta) {
-    return (
-      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
-        Se încarcă testul...
-      </main>
-    );
+    return <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">Se încarcă testul...</main>;
   }
 
   if (stare === 'picat' || stare === 'promovat') {
@@ -183,9 +162,7 @@ function TestSMULSContent() {
           <div className={`absolute top-0 left-0 right-0 h-[2px] ${admis ? 'bg-green-500' : 'bg-[#C0392B]'}`} />
           <div className="p-8 text-center space-y-6">
             <h2 className="text-3xl font-black text-[#F0EAE8]">{admis ? 'ADMIS' : 'RESPINS'}</h2>
-            <p className="text-[#8A7E7C] text-sm">
-              {admis ? 'Felicitări!' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina.' : 'Prea multe greșeli.')}
-            </p>
+            <p className="text-[#8A7E7C] text-sm">{admis ? 'Felicitări!' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina.' : 'Prea multe greșeli.')}</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
                 <p className="text-[10px] uppercase font-bold text-[#8A7E7C]">Greșeli</p>
@@ -196,12 +173,7 @@ function TestSMULSContent() {
                 <p className="text-lg font-black text-white">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
               </div>
             </div>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase"
-            >
-              Înapoi la Dashboard
-            </button>
+            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase">Înapoi la Dashboard</button>
           </div>
         </div>
       </main>
@@ -223,32 +195,19 @@ function TestSMULSContent() {
             </div>
           </div>
           <header>
-            <p className="text-[10px] font-bold text-[#C0392B] uppercase">
-              Întrebarea {indexCurent + 1} / {totalIntrebari}
-            </p>
+            <p className="text-[10px] font-bold text-[#C0392B] uppercase">Întrebarea {indexCurent + 1} / {totalIntrebari}</p>
             <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta.intrebare}</h2>
           </header>
           <section className="space-y-3">
             {intrebareCurenta.optiuni.map((optiune, i) => (
-              <button
-                key={i}
-                disabled={!!feedback}
-                onClick={() => setOptiuneSelectata(optiune)}
-                className={`w-full p-4 rounded-lg border text-left transition-all ${
-                  optiuneSelectata === optiune
-                    ? 'bg-[#C0392B] border-[#C0392B]'
-                    : 'bg-[#231E1C] border-[#2E2724]'
-                }`}
-              >
+              <button key={i} disabled={!!feedback} onClick={() => setOptiuneSelectata(optiune)}
+                className={`w-full p-4 rounded-lg border text-left transition-all ${optiuneSelectata === optiune ? 'bg-[#C0392B] border-[#C0392B]' : 'bg-[#231E1C] border-[#2E2724]'}`}>
                 <span className="text-sm">{optiune}</span>
               </button>
             ))}
           </section>
-          <button
-            onClick={handleConfirm}
-            disabled={!optiuneSelectata || !!feedback}
-            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
-          >
+          <button onClick={handleConfirm} disabled={!optiuneSelectata || !!feedback}
+            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase">
             {feedback ? 'Procesare...' : 'Confirmă'}
           </button>
         </div>
