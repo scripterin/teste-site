@@ -22,7 +22,7 @@ function seededShuffle<T>(array: T[], seed: string): T[] {
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions as any);
   if (!session) {
     return NextResponse.json({ error: 'Neautorizat' }, { status: 401 });
   }
