@@ -7,7 +7,6 @@ import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import TestButtons from '@/components/TestButtons';
 
-// ── Notificări stilizate (Design Medical Warm-Dark) ────────────────────────
 const notify = (type, text) => {
   const base = {
     background: '#1A1614',
@@ -110,7 +109,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (countdown === 0) {
-      const testPath = validatedTest?.toLowerCase().replace(/\s+/g, '-').normalize("NFD").replace(/[\u0300-\u036f]/g, "") || 'test';
+      // ✅ Map explicit — fără conversii de text care pot da erori
+      const testMap = {
+        'RADIO': 'radio',
+        'BLS': 'bls',
+        'REZIDENȚIAT': 'rezidentiat',
+        'SMULS TEORETIC': 'smuls-teoretic',
+      };
+      const testPath = testMap[validatedTest] || 'test';
       router.push(`/test/${testPath}?cod=${code.toUpperCase()}`);
     }
     if (countdown > 0) {
@@ -119,24 +125,20 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
-  // Culoarea dinamică a border-ului pentru input
   const inputBorderColor = codeValid ? '#C0392B' : inputFocused ? '#C0392B' : '#2E2724';
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0F0D0D', display: 'flex', flexDirection: 'column' }}>
       <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
       
-      {/* Folosim Navbar-ul tău original */}
       <Navbar />
 
       <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', position: 'relative' }}>
         
-        {/* Glow de fundal subtil */}
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(circle, rgba(192,57,43,0.05) 0%, rgba(15,13,13,0) 70%)' }} />
 
         <div style={{ position: 'relative', width: '100%', maxWidth: 480, backgroundColor: '#1A1614', border: '1px solid #2E2724', borderRadius: 4, boxShadow: '0 30px 60px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
           
-          {/* Accent Line */}
           <div style={{ height: 2, backgroundColor: '#C0392B', width: '100%' }} />
 
           <div style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -153,13 +155,11 @@ export default function Dashboard() {
               </p>
             </header>
 
-            {/* TestButtons originale */}
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>SELECTEAZĂ TIPUL TESTULUI</label>
               <TestButtons selected={selectedTest} onSelect={setSelectedTest} />
             </section>
 
-            {/* Input Cod */}
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>COD TEST</label>
               <input
@@ -177,7 +177,6 @@ export default function Dashboard() {
               {loadingValidate && <p style={{ fontSize: 11, color: '#C0392B', margin: 0, fontStyle: 'italic' }}>Se verifică protocolul...</p>}
             </section>
 
-            {/* Butoane Acțiune */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button
                 onClick={handleGenerateCode}
