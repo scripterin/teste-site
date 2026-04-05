@@ -35,7 +35,6 @@ const CodeSchema = new mongoose.Schema({
 });
 
 // TTL — MongoDB șterge automat codul după expirare
-CodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 CodeSchema.index({ userId: 1 });
 
 export default mongoose.models.Code || mongoose.model('Code', CodeSchema);

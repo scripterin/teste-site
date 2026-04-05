@@ -5,8 +5,6 @@ import connectDB from '@/lib/mongodb';
 import Code from '@/models/Code';
 import { sendCodeEmbed } from '@/lib/discordBot';
 
-const CODE_EXPIRY_MS = 5 * 60 * 1000; // 5 minute
-
 function generateCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
@@ -43,10 +41,10 @@ export async function POST(request) {
     const username = session.user.username || session.user.name;
     const now      = new Date();
 
-    // ── Șterge toate codurile vechi ale userului (expirate sau nefolosite) ───
+    // Șterge toate codurile vechi ale userului
     await Code.deleteMany({ userId });
 
-    // ── Generează cod unic ────────────────────────────────────────────────────
+    // Generează cod unic
     let cod;
     let isUnique = false;
     let attempts = 0;
@@ -65,7 +63,8 @@ export async function POST(request) {
       );
     }
 
-    const expiresAt = new Date(now.getTime() + CODE_EXPIRY_MS);
+
+    const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
 
     await Code.create({
       userId,
