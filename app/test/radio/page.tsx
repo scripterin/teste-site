@@ -20,7 +20,7 @@ function TestRadioContent() {
 
   const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
   const [totalIntrebari, setTotalIntrebari] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // Doar pentru prima încărcare
   const [indexCurent, setIndexCurent] = useState(0);
   const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
@@ -36,8 +36,10 @@ function TestRadioContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  const incarcaIntrebare = useCallback(async (index: number) => {
-    setIsLoading(true);
+  // Funcția de încărcare modificată să NU mai dea setISLoading(true) la fiecare apel
+  const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
+    if (isFirstLoad) setIsInitialLoading(true);
+    
     try {
       const res = await fetch(`/api/test/radio/question?index=${index}&cod=${cod ?? ''}`);
       if (!res.ok) throw new Error('Eroare server');
@@ -47,12 +49,16 @@ function TestRadioContent() {
     } catch (e) {
       console.error('Eroare la încărcarea întrebării:', e);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
     }
   }, [cod]);
 
-  useEffect(() => { incarcaIntrebare(0); }, [incarcaIntrebare]);
+  // Prima încărcare
+  useEffect(() => { 
+    incarcaIntrebare(0, true); 
+  }, [incarcaIntrebare]);
 
+  // Anticheat
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
@@ -61,15 +67,19 @@ function TestRadioContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
+  // Timer-ul curge indiferent de încărcarea întrebărilor (am scos isLoading din dependențe)
   useEffect(() => {
-    if (stare !== 'activ' || isLoading) return;
+    if (stare !== 'activ') return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
-      if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
+      if (timpRamasRef.current <= 0) { 
+        clearInterval(interval); 
+        terminaTest('timp_expirat'); 
+      }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare, isLoading]);
+  }, [stare]);
 
   const terminaTest = useCallback((motiv: string) => {
     if (stareRef.current !== 'activ') return;
@@ -108,11 +118,15 @@ function TestRadioContent() {
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
-      if (greseliRef.current > MAX_GRESELI) { setTimeout(() => terminaTest('greseli_maxime'), 600); return; }
+      if (greseliRef.current > MAX_GRESELI) { 
+        setTimeout(() => terminaTest('greseli_maxime'), 600); 
+        return; 
+      }
     } else {
       setFeedback('corect');
     }
 
+    // Trecerea la următoarea întrebare fără "loading screen"
     setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
@@ -150,8 +164,16 @@ function TestRadioContent() {
     return `${m}:${s}`;
   };
 
-  if (isLoading || !intrebareCurenta) {
-    return <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">Se încarcă testul...</main>;
+  // Folosim isInitialLoading doar la prima intrare pe pagină
+  if (isInitialLoading || !intrebareCurenta) {
+    return (
+      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-4">
+           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#C0392B]"></div>
+           <p className="font-bold uppercase tracking-widest text-sm">Se încarcă testul...</p>
+        </div>
+      </main>
+    );
   }
 
   if (stare === 'picat' || stare === 'promovat') {
@@ -162,7 +184,7 @@ function TestRadioContent() {
           <div className={`absolute top-0 left-0 right-0 h-[2px] ${admis ? 'bg-green-500' : 'bg-[#C0392B]'}`} />
           <div className="p-8 text-center space-y-6">
             <h2 className="text-3xl font-black text-[#F0EAE8]">{admis ? 'ADMIS' : 'RESPINS'}</h2>
-            <p className="text-[#8A7E7C] text-sm">{admis ? 'Felicitări!' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina.' : 'Prea multe greșeli.')}</p>
+            <p className="text-[#8A7E7C] text-sm">{admis ? 'Felicitări!' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina.' : 'Test eșuat.')}</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
                 <p className="text-[10px] uppercase font-bold text-[#8A7E7C]">Greșeli</p>
@@ -208,7 +230,7 @@ function TestRadioContent() {
           </section>
           <button onClick={handleConfirm} disabled={!optiuneSelectata || !!feedback}
             className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase">
-            {feedback ? 'Procesare...' : 'Confirmă'}
+            {feedback ? 'Se verifică...' : 'Confirmă'}
           </button>
         </div>
       </div>
