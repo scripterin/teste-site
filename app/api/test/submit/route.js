@@ -12,18 +12,11 @@ const COOLDOWN_ZILE = {
   'REZIDENȚIAT': 5,
 };
 
-/**
- * Calculează data de expirare a cooldown-ului.
- * Dacă azi e 03.04 și cooldown e 3 zile => 06.04
- */
 function getCooldownDate(testName) {
   const zile = COOLDOWN_ZILE[testName] || 3;
-  const dataFinala = new Date(); // Data curentă (ex: 03.04)
+  const dataFinala = new Date();
 
-  // Adăugăm numărul de zile direct la data curentă
-  dataFinala.setDate(dataFinala.getDate() + zile); 
-  
-  // Setăm la sfârșitul zilei pentru a fi validă până la ora 23:59
+  dataFinala.setDate(dataFinala.getDate() + zile - 1);
   dataFinala.setHours(23, 59, 59, 999);
 
   return dataFinala;
