@@ -129,8 +129,8 @@ const INTREBARI = [
     id: 12,
     intrebare: 'Naloxona este utilizată în:',
     optiuni: [
-      'Șoc anafilactic sever',
-      'Intoxicații cu opioide (substanțe interzise)',
+      'Intoxicații cu substanțe interzise',
+      'Intoxicații cu medicamente',
       'Arsuri de gradul III',
       'Fracturi deschise de membru'
     ],
@@ -146,6 +146,16 @@ function TestBLSContent() {
   const searchParams = useSearchParams();
   const cod = searchParams.get('cod');
  
+  // ← Întrebări amestecate o singură dată la montare
+  const intrebariAmestecate = useMemo(() => {
+    const arr = [...INTREBARI];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, []);
+ 
   const [indexCurent, setIndexCurent] = useState(0);
   const [optiuneSelectata, setOptiuneSelectata] = useState(null);
   const [greseli, setGreseli] = useState(0);
@@ -159,9 +169,8 @@ function TestBLSContent() {
   const greseliRef = useRef(0);
   const stareRef = useRef('activ');
   const intrebariGresiteRef = useRef([]);
-  const motivRef = useRef(''); // ← FIX
+  const motivRef = useRef('');
  
-  // --- Logică Anticheat ---
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') {
@@ -172,7 +181,6 @@ function TestBLSContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
  
-  // --- Logică Timer ---
   useEffect(() => {
     if (stare !== 'activ') return;
     const interval = setInterval(() => {
@@ -186,7 +194,6 @@ function TestBLSContent() {
     return () => clearInterval(interval);
   }, [stare]);
  
-  // ← FIX: motivRef.current = motiv
   const terminaTest = useCallback((motiv) => {
     if (stareRef.current !== 'activ') return;
     const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
@@ -199,7 +206,7 @@ function TestBLSContent() {
   const handleConfirm = () => {
     if (optiuneSelectata === null || feedback) return;
  
-    const intrebareCurenta = INTREBARI[indexCurent];
+    const intrebareCurenta = intrebariAmestecate[indexCurent];
     const esteGresit = optiuneSelectata !== intrebareCurenta.raspunsCorect;
  
     if (esteGresit) {
@@ -223,7 +230,7 @@ function TestBLSContent() {
     setTimeout(() => {
       setFeedback(null);
       setOptiuneSelectata(null);
-      if (indexCurent + 1 >= INTREBARI.length) {
+      if (indexCurent + 1 >= intrebariAmestecate.length) {
         terminaTest('finalizat');
       } else {
         setIndexCurent((prev) => prev + 1);
@@ -231,7 +238,6 @@ function TestBLSContent() {
     }, 600);
   };
  
-  // ← FIX: motivRef.current în loc de motivFinal, scos din deps
   useEffect(() => {
     if ((stare === 'picat' || stare === 'promovat') && !submitting) {
       if (!cod) {
@@ -259,7 +265,6 @@ function TestBLSContent() {
     return `${m}:${s}`;
   };
  
-  // --- UI: Ecran Final (Admis/Respins) ---
   if (stare === 'picat' || stare === 'promovat') {
     const admis = stare === 'promovat';
     return (
@@ -309,8 +314,7 @@ function TestBLSContent() {
     );
   }
  
-  // --- UI: Test Activ ---
-  const intrebareCurenta = INTREBARI[indexCurent];
+  const intrebareCurenta = intrebariAmestecate[indexCurent];
  
   return (
     <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative overflow-hidden">
@@ -338,7 +342,7 @@ function TestBLSContent() {
  
             <header className="space-y-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">
-                Întrebarea {indexCurent + 1} DIN {INTREBARI.length}
+                Întrebarea {indexCurent + 1} DIN {intrebariAmestecate.length}
               </p>
               <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">
                 {intrebareCurenta?.intrebare}
@@ -375,7 +379,7 @@ function TestBLSContent() {
               <div className="w-full bg-[#231E1C] h-1 rounded-full overflow-hidden">
                 <div
                   className="bg-[#C0392B] h-full transition-all duration-500"
-                  style={{ width: `${((indexCurent + 1) / INTREBARI.length) * 100}%` }}
+                  style={{ width: `${((indexCurent + 1) / intrebariAmestecate.length) * 100}%` }}
                 />
               </div>
               <button
