@@ -1,10 +1,7 @@
-// app/api/test/bls/question/route.ts
-// Returnează o întrebare fără raspunsCorect + ordinea opțiunilor amestecată
-
 import { NextRequest, NextResponse } from 'next/server';
 import { INTREBARI_BLS } from '@/lib/questions/bls';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 
 // Shuffle determinist pe server folosind un seed bazat pe cod + id
 // Astfel shuffle-ul e consistent între request-uri dar diferit per sesiune

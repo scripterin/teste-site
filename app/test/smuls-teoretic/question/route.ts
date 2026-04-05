@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { INTREBARI_SMULS } from '@/lib/questions/smuls';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 
 // Shuffle determinist pe server folosind un seed bazat pe cod + id
 // Astfel shuffle-ul e consistent între request-uri dar diferit per sesiune
