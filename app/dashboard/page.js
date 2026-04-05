@@ -7,25 +7,33 @@ import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import TestButtons from '@/components/TestButtons';
 
+// ── Notificări stilizate (Design Medical Warm-Dark) ────────────────────────
 const notify = (type, text) => {
   const base = {
-    background: '#111',
+    background: '#1A1614',
     color: '#F0EAE8',
     fontSize: '11px',
-    fontWeight: '600',
-    letterSpacing: '0.12em',
-    padding: '12px 18px',
-    borderRadius: '6px',
-    fontFamily: "'DM Mono', monospace",
-    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-    border: '1px solid rgba(255,255,255,0.06)',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '0.15em',
+    padding: '14px 20px',
+    borderRadius: '4px',
+    fontFamily: 'monospace',
+    minWidth: '320px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.7)',
+    border: '1px solid #2E2724',
   };
+  
   const themes = {
-    success: { ...base, borderLeft: '3px solid #C0392B' },
-    error:   { ...base, borderLeft: '3px solid #7C3030', color: '#ffb3b0' },
-    info:    { ...base, borderLeft: '3px solid #555', color: '#aaa' },
+    success: { ...base, borderLeft: '4px solid #C0392B', color: '#F0EAE8' },
+    error:   { ...base, borderLeft: '4px solid #7C3030', color: '#ffb3b0' },
+    info:    { ...base, borderLeft: '4px solid #8A7E7C', color: '#E1BFB9' },
   };
-  toast(text, { style: themes[type] || themes.info, icon: null });
+
+  toast(text, {
+    style: themes[type] || themes.info,
+    icon: type === 'success' ? '✔' : type === 'error' ? '✖' : 'ℹ',
+  });
 };
 
 export default function Dashboard() {
@@ -43,11 +51,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (code.length === 6) handleValidateCode();
-    else { setCodeValid(false); setValidatedTest(null); }
+    else { 
+      setCodeValid(false); 
+      setValidatedTest(null); 
+    }
   }, [code]);
 
   const handleGenerateCode = async () => {
-    if (!selectedTest) return notify('error', 'Selectează un test');
+    if (!selectedTest) return notify('error', 'Selectează un test!');
     setLoadingGenerate(true);
     try {
       const res = await fetch('/api/generate-code', {
@@ -57,9 +68,12 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (!res.ok) notify('error', data.error || 'Eroare la generare.');
-      else notify('success', 'Cod trimis pe Discord');
-    } catch { notify('error', 'Eroare de conexiune.'); }
-    finally { setLoadingGenerate(false); }
+      else notify('success', 'Cod generat!');
+    } catch { 
+      notify('error', 'Eroare de conexiune la server.'); 
+    } finally { 
+      setLoadingGenerate(false); 
+    }
   };
 
   const handleValidateCode = useCallback(async () => {
@@ -73,16 +87,25 @@ export default function Dashboard() {
         body: JSON.stringify({ cod: trimmed }),
       });
       const data = await res.json();
-      if (res.ok) { setCodeValid(true); setValidatedTest(data.testSelectat); notify('success', 'Cod valid'); }
-      else { setCodeValid(false); notify('error', 'Cod invalid'); }
-    } catch { setCodeValid(false); }
-    finally { setLoadingValidate(false); }
+      if (res.ok) {
+        setCodeValid(true);
+        setValidatedTest(data.testSelectat);
+        notify('success', 'Acces Autorizat!');
+      } else {
+        setCodeValid(false);
+        notify('error', 'Cod test invalid.');
+      }
+    } catch { 
+      setCodeValid(false); 
+    } finally { 
+      setLoadingValidate(false); 
+    }
   }, [code]);
 
   const handleStartTest = () => {
     if (!codeValid) return;
     setCountdown(3);
-    notify('info', 'Se inițializează testul...');
+    notify('info', 'Te trimitem la test...');
   };
 
   useEffect(() => {
@@ -96,331 +119,94 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
+  // Culoarea dinamică a border-ului pentru input
+  const inputBorderColor = codeValid ? '#C0392B' : inputFocused ? '#C0392B' : '#2E2724';
+
   return (
-    <>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+    <div style={{ minHeight: '100vh', backgroundColor: '#0F0D0D', display: 'flex', flexDirection: 'column' }}>
+      <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
+      
+      {/* Folosim Navbar-ul tău original */}
+      <Navbar />
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', position: 'relative' }}>
+        
+        {/* Glow de fundal subtil */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(circle, rgba(192,57,43,0.05) 0%, rgba(15,13,13,0) 70%)' }} />
 
-        .dash-root {
-          min-height: 100vh;
-          background: #0A0808;
-          display: flex;
-          flex-direction: column;
-          font-family: 'DM Sans', sans-serif;
-          position: relative;
-          overflow: hidden;
-        }
+        <div style={{ position: 'relative', width: '100%', maxWidth: 480, backgroundColor: '#1A1614', border: '1px solid #2E2724', borderRadius: 4, boxShadow: '0 30px 60px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+          
+          {/* Accent Line */}
+          <div style={{ height: 2, backgroundColor: '#C0392B', width: '100%' }} />
 
-        /* Grain overlay */
-        .dash-root::before {
-          content: '';
-          position: fixed;
-          inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-          opacity: 0.025;
-          pointer-events: none;
-          z-index: 0;
-        }
-
-        /* Red glow top-left */
-        .dash-root::after {
-          content: '';
-          position: fixed;
-          top: -200px;
-          left: -200px;
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(192,57,43,0.12) 0%, transparent 70%);
-          pointer-events: none;
-          z-index: 0;
-        }
-
-        .dash-main {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 80px 24px 40px;
-          position: relative;
-          z-index: 1;
-        }
-
-        .dash-card {
-          width: 100%;
-          max-width: 460px;
-          animation: fadeUp 0.5s ease both;
-        }
-
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Header */
-        .dash-header {
-          margin-bottom: 40px;
-        }
-
-        .dash-eyebrow {
-          font-family: 'DM Mono', monospace;
-          font-size: 9px;
-          font-weight: 500;
-          letter-spacing: 0.3em;
-          color: #C0392B;
-          text-transform: uppercase;
-          margin-bottom: 10px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .dash-eyebrow::before {
-          content: '';
-          display: inline-block;
-          width: 20px;
-          height: 1px;
-          background: #C0392B;
-        }
-
-        .dash-title {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 52px;
-          letter-spacing: 0.04em;
-          color: #F0EAE8;
-          line-height: 0.95;
-          margin-bottom: 12px;
-        }
-
-        .dash-title span { color: #C0392B; }
-
-        .dash-subtitle {
-          font-size: 12px;
-          color: #4A4040;
-          letter-spacing: 0.05em;
-          font-weight: 300;
-        }
-
-        /* Divider */
-        .dash-divider {
-          height: 1px;
-          background: linear-gradient(to right, #2E2724, transparent);
-          margin: 28px 0;
-        }
-
-        /* Section label */
-        .dash-label {
-          font-family: 'DM Mono', monospace;
-          font-size: 9px;
-          letter-spacing: 0.2em;
-          color: #3A3030;
-          text-transform: uppercase;
-          margin-bottom: 10px;
-        }
-
-        /* Code input */
-        .code-input-wrap {
-          position: relative;
-          margin-bottom: 24px;
-        }
-
-        .code-input {
-          width: 100%;
-          height: 64px;
-          background: #0F0D0D;
-          border: 1px solid #1E1A18;
-          border-radius: 6px;
-          text-align: center;
-          font-family: 'DM Mono', monospace;
-          font-size: 26px;
-          letter-spacing: 0.5em;
-          color: #F0EAE8;
-          outline: none;
-          transition: border-color 0.2s;
-          padding-left: 0.5em; /* compensate letter-spacing */
-        }
-
-        .code-input:focus {
-          border-color: #C0392B;
-        }
-
-        .code-input.valid {
-          border-color: #C0392B;
-          color: #C0392B;
-        }
-
-        .code-input::placeholder { color: #2A2220; letter-spacing: 0.4em; }
-
-        .code-status {
-          position: absolute;
-          right: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-family: 'DM Mono', monospace;
-          font-size: 9px;
-          letter-spacing: 0.15em;
-          color: #C0392B;
-          opacity: 0;
-          transition: opacity 0.2s;
-        }
-
-        .code-status.visible { opacity: 1; }
-
-        /* Buttons */
-        .btn-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          margin-top: 28px;
-        }
-
-        .btn {
-          height: 52px;
-          border-radius: 6px;
-          font-family: 'DM Mono', monospace;
-          font-size: 10px;
-          font-weight: 500;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.15s;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-
-        .btn-outline {
-          background: transparent;
-          border: 1px solid #2E2724;
-          color: #8A7E7C;
-        }
-
-        .btn-outline:hover:not(:disabled) {
-          border-color: #C0392B;
-          color: #C0392B;
-        }
-
-        .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        .btn-solid {
-          background: #C0392B;
-          color: #fff;
-        }
-
-        .btn-solid:hover:not(:disabled) { background: #A93226; }
-        .btn-solid:disabled { background: #1E1A18; color: #3A3030; cursor: not-allowed; }
-        .btn-solid:active:not(:disabled) { transform: scale(0.98); }
-
-        /* Countdown ring */
-        .countdown-ring {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          border: 1.5px solid rgba(255,255,255,0.3);
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        /* Footer */
-        .dash-footer {
-          position: relative;
-          z-index: 1;
-          text-align: center;
-          padding: 20px;
-        }
-
-        .dash-footer p {
-          font-family: 'DM Mono', monospace;
-          font-size: 8px;
-          letter-spacing: 0.3em;
-          color: #1E1A18;
-          text-transform: uppercase;
-        }
-      `}</style>
-
-      <div className="dash-root">
-        <Toaster position="bottom-right" toastOptions={{ duration: 4000 }} />
-        <Navbar />
-
-        <main className="dash-main">
-          <div className="dash-card">
-
-            {/* Header */}
-            <div className="dash-header">
-              <p className="dash-eyebrow">Sistem Examinare</p>
-              <h1 className="dash-title">
-                DEP.<br /><span>MEDICAL</span>
+          <div style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+            
+            <header>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#C0392B', letterSpacing: '0.25em', marginBottom: 8 }}>
+                SITE TESTE
+              </p>
+              <h1 style={{ fontSize: 28, fontWeight: 900, color: '#F0EAE8', letterSpacing: '-0.02em', margin: 0 }}>
+                DEP. MEDICAL <span style={{ color: '#C0392B' }}>FPLAYT</span>
               </h1>
-              <p className="dash-subtitle">Selectează testul și solicită codul de acces</p>
-            </div>
+              <p style={{ fontSize: 13, color: '#8A7E7C', marginTop: 8, lineHeight: 1.5 }}>
+                Selectează testul pe care dorești să îl susții
+              </p>
+            </header>
 
-            <div className="dash-divider" />
-
-            {/* Test selection */}
-            <div>
-              <p className="dash-label">Tip test</p>
+            {/* TestButtons originale */}
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>SELECTEAZĂ TIPUL TESTULUI</label>
               <TestButtons selected={selectedTest} onSelect={setSelectedTest} />
-            </div>
+            </section>
 
-            <div className="dash-divider" />
+            {/* Input Cod */}
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>COD TEST</label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                placeholder="••••••"
+                maxLength={6}
+                style={{
+                  width: '100%', height: 60, backgroundColor: '#231E1C', border: `1px solid ${inputBorderColor}`, borderRadius: 4, textAlign: 'center', fontFamily: 'monospace', fontSize: 24, letterSpacing: '0.4em', color: '#F0EAE8', outline: 'none', transition: 'all 0.2s'
+                }}
+              />
+              {loadingValidate && <p style={{ fontSize: 11, color: '#C0392B', margin: 0, fontStyle: 'italic' }}>Se verifică protocolul...</p>}
+            </section>
 
-            {/* Code input */}
-            <div>
-              <p className="dash-label">Cod de acces</p>
-              <div className="code-input-wrap">
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
-                  onFocus={() => setInputFocused(true)}
-                  onBlur={() => setInputFocused(false)}
-                  placeholder="——————"
-                  maxLength={6}
-                  className={`code-input${codeValid ? ' valid' : ''}`}
-                />
-                <span className={`code-status${loadingValidate ? ' visible' : ''}`}>
-                  verificare...
-                </span>
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="btn-row">
+            {/* Butoane Acțiune */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button
-                className="btn btn-outline"
                 onClick={handleGenerateCode}
                 disabled={loadingGenerate || !selectedTest}
+                style={{
+                  width: '100%', padding: '16px', backgroundColor: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: (loadingGenerate || !selectedTest) ? 'not-allowed' : 'pointer', opacity: (loadingGenerate || !selectedTest) ? 0.4 : 1, transition: 'all 0.2s'
+                }}
               >
-                {loadingGenerate ? 'generare...' : '+ solicită cod'}
+                {loadingGenerate ? 'Generare...' : 'Solicită Cod'}
               </button>
 
               <button
-                className="btn btn-solid"
                 onClick={handleStartTest}
                 disabled={!codeValid || countdown !== null}
+                style={{
+                  width: '100%', padding: '16px', backgroundColor: codeValid ? '#C0392B' : '#2E2724', border: 'none', color: codeValid ? '#FFF' : '#8A7E7C', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: (!codeValid || countdown !== null) ? 'not-allowed' : 'pointer', transition: 'all 0.2s'
+                }}
               >
-                {countdown !== null ? (
-                  <>
-                    <span className="countdown-ring">{countdown}</span>
-                    start...
-                  </>
-                ) : 'începe testul →'}
+                {countdown !== null ? `Inițializare (${countdown})` : 'Începe Testul'}
               </button>
             </div>
 
           </div>
-        </main>
 
-        <footer className="dash-footer">
-          <p>Departamentul Medical FPlayT · Sistem Securizat</p>
-        </footer>
-      </div>
-    </>
+          <footer style={{ backgroundColor: '#141110', padding: '12px', borderTop: '1px solid #2E2724', textAlign: 'center' }}>
+            <p style={{ fontSize: 9, color: '#4A4240', letterSpacing: '0.1em', margin: 0, fontWeight: 600 }}>ECLIPSE MEDICAL TOWER</p>
+          </footer>
+        </div>
+      </main>
+    </div>
   );
 }
