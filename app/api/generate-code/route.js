@@ -64,7 +64,7 @@ export async function POST(request) {
     }
 
 
-    const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    const CODE_EXPIRY_MS = 5 * 60 * 1000; // 5 minute
 
     await Code.create({
       userId,
