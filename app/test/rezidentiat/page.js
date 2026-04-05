@@ -3,304 +3,61 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const INTREBARI = [
-  {
-    id: 1,
-    intrebare: 'Înainte de operația de chirurgie plastică, ce este obligat pacientul să facă?',
-    optiuni: [
-      'Să facă o Radiografie',
-      'Să primească antibiotic',
-      'Să semneze acordul pentru intervenție'
-    ],
-    raspunsCorect: 'Să semneze acordul pentru intervenție'
-  },
-  {
-    id: 2,
-    intrebare: 'Care este taxa stabilită pentru operația de chirurgie plastică?',
-    optiuni: [
-      '500.000$',
-      '10.000$',
-      '550.000$'
-    ],
-    raspunsCorect: '550.000$'
-  },
-  {
-    id: 3,
-    intrebare: 'În chirurgia plastică nazală, ce structură este remodelată?',
-    optiuni: [
-      'Mușchiul facial',
-      'Structurile nazale (cartilaj/os)',
-      'Plămânul'
-    ],
-    raspunsCorect: 'Structurile nazale (cartilaj/os)'
-  },
-  {
-    id: 4,
-    intrebare: 'Prin ce metodă se realizează scoaterea tatuajelor?',
-    optiuni: [
-      'Incizie',
-      'Injecție',
-      'Laser'
-    ],
-    raspunsCorect: 'Laser'
-  },
-  {
-    id: 5,
-    intrebare: 'De ce factor depinde numărul de impulsuri laser la scoaterea unui tatuaj?',
-    optiuni: [
-      'Dimensiunea tatuajului',
-      'Pulsul pacientului',
-      'Vârsta pacientului'
-    ],
-    raspunsCorect: 'Dimensiunea tatuajului'
-  },
-  {
-    id: 6,
-    intrebare: 'Ce trebuie să evite pacientul după procedura de scoatere a tatuajelor?',
-    optiuni: [
-      'Să maseze zona',
-      'Să evite scărpinarea zonei',
-      'Să îndepărteze crustele'
-    ],
-    raspunsCorect: 'Să evite scărpinarea zonei'
-  },
-  {
-    id: 7,
-    intrebare: 'Ce investigație este obligatorie înainte de operația pentru fractură?',
-    optiuni: [
-      'EKG',
-      'Spirometrie',
-      'Radiografie'
-    ],
-    raspunsCorect: 'Radiografie'
-  },
-  {
-    id: 8,
-    intrebare: 'Ce tip de anestezie se utilizează în operația de fractură?',
-    optiuni: [
-      'Propofol',
-      'Xilină',
-      'Tetracaină'
-    ],
-    raspunsCorect: 'Propofol'
-  },
-  {
-    id: 9,
-    intrebare: 'Cum se realizează stabilizarea unei fracturi în timpul intervenției?',
-    optiuni: [
-      'Bandaj',
-      'Tijă metalică',
-      'Laser'
-    ],
-    raspunsCorect: 'Tijă metalică'
-  },
-  {
-    id: 10,
-    intrebare: 'Ce instrumente se folosesc după incizie în operația de fractură?',
-    optiuni: [
-      'Defibrilator',
-      'Atelă',
-      'Depărtătoare'
-    ],
-    raspunsCorect: 'Depărtătoare'
-  },
-  {
-    id: 11,
-    intrebare: 'Care este simptomul principal în cazul unei apendicite?',
-    optiuni: [
-      'Durere în cadranul inferior drept',
-      'Durere toracică',
-      'Cefalee'
-    ],
-    raspunsCorect: 'Durere în cadranul inferior drept'
-  },
-  {
-    id: 12,
-    intrebare: 'Ce tip de anestezie se aplică pentru operația de apendicită?',
-    optiuni: [
-      'Rahianestezie',
-      'Generală',
-      'Locală'
-    ],
-    raspunsCorect: 'Generală'
-  },
-  {
-    id: 13,
-    intrebare: 'Cu ce instrument este îndepărtat apendicele?',
-    optiuni: [
-      'Foarfecă',
-      'Laser',
-      'Atelă'
-    ],
-    raspunsCorect: 'Foarfecă'
-  },
-  {
-    id: 14,
-    intrebare: 'Ce se utilizează pentru fixare în operația de coastă ruptă?',
-    optiuni: [
-      'Bandaj simplu',
-      'Tijă',
-      'Plăcuță metalică'
-    ],
-    raspunsCorect: 'Plăcuță metalică'
-  },
-  {
-    id: 15,
-    intrebare: 'Care este simptomul principal raportat în cazul unei coaste rupte?',
-    optiuni: [
-      'Durere toracică',
-      'Febră',
-      'Tuse'
-    ],
-    raspunsCorect: 'Durere toracică'
-  },
-  {
-    id: 16,
-    intrebare: 'În cazul unei plăgi împușcate, care este primul gest medical?',
-    optiuni: [
-      'Incizie',
-      'Stază pe rană',
-      'Antibiotic'
-    ],
-    raspunsCorect: 'Stază pe rană'
-  },
-  {
-    id: 17,
-    intrebare: 'Ce anestezic se folosește la scoaterea glonțului?',
-    optiuni: [
-      'Propofol',
-      'Tetracaină',
-      'Xilină'
-    ],
-    raspunsCorect: 'Xilină'
-  },
-  {
-    id: 18,
-    intrebare: 'Cu ce instrument se extrage glonțul din corp?',
-    optiuni: [
-      'Pensă',
-      'Foarfecă',
-      'Seringă'
-    ],
-    raspunsCorect: 'Pensă'
-  },
-  {
-    id: 19,
-    intrebare: 'Care este poziția pacientului în operația de hernie de disc?',
-    optiuni: [
-      'Pe spate',
-      'În șezut',
-      'Pe burtă'
-    ],
-    raspunsCorect: 'Pe burtă'
-  },
-  {
-    id: 20,
-    intrebare: 'Ce se îndepărtează efectiv în operația de hernie de disc?',
-    optiuni: [
-      'Os',
-      'Fragment de disc herniat',
-      'Mușchi'
-    ],
-    raspunsCorect: 'Fragment de disc herniat'
-  },
-  {
-    id: 21,
-    intrebare: 'Prin ce metodă se face intervenția în ruptura de menisc?',
-    optiuni: [
-      'Endoscopie',
-      'Incizie mare',
-      'Radiografie'
-    ],
-    raspunsCorect: 'Endoscopie'
-  },
-  {
-    id: 22,
-    intrebare: 'Care este rolul principal al meniscului?',
-    optiuni: [
-      'Digestie',
-      'Stabilizare articulație',
-      'Respirație'
-    ],
-    raspunsCorect: 'Stabilizare articulație'
-  },
-  {
-    id: 23,
-    intrebare: 'Ce echipament video se utilizează în operația de menisc?',
-    optiuni: [
-      'Defibrilator',
-      'Laser extern',
-      'Cameră video'
-    ],
-    raspunsCorect: 'Cameră video'
-  },
-  {
-    id: 24,
-    intrebare: 'Ce se face imediat după montarea tijei în operația de fractură?',
-    optiuni: [
-      'Defibrilare',
-      'Dezinfectare și sutură',
-      'Transport direct'
-    ],
-    raspunsCorect: 'Dezinfectare și sutură'
-  },
-  {
-    id: 25,
-    intrebare: 'Unde este dus pacientul după operația de apendicită?',
-    optiuni: [
-      'Externat imediat',
-      'Trimis acasă',
-      'În salon pentru recuperare'
-    ],
-    raspunsCorect: 'În salon pentru recuperare'
-  }
-];
 
 const TIMP_TOTAL = 360;
 const MAX_GRESELI = 2;
+
+interface IntrebarePrimita {
+  index: number;
+  total: number;
+  intrebare: string;
+  optiuni: string[];
+}
 
 function TestRezidentiatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cod = searchParams.get('cod');
 
-  const [intrebariSuflate, setIntrebariSuflate] = useState([]);
-  const [isReady, setIsReady] = useState(false);
-  
+  const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
+  const [totalIntrebari, setTotalIntrebari] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [indexCurent, setIndexCurent] = useState(0);
-  const [optiuneSelectata, setOptiuneSelectata] = useState(null);
+  const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
   const [timpRamas, setTimpRamas] = useState(TIMP_TOTAL);
-  const [stare, setStare] = useState('activ');
+  const [stare, setStare] = useState<'activ' | 'promovat' | 'picat'>('activ');
   const [motivFinal, setMotivFinal] = useState('');
-  const [feedback, setFeedback] = useState(null);
+  const [feedback, setFeedback] = useState<'corect' | 'gresit' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const timpRamasRef = useRef(TIMP_TOTAL);
   const greseliRef = useRef(0);
-  const stareRef = useRef('activ');
-  const intrebariGresiteRef = useRef([]);
+  const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
+  const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // SHUFFLE LOGIC - Rulează doar pe Client
+  // Încarcă întrebarea curentă de la server
+  const incarcaIntrebare = useCallback(async (index: number) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/test/bls/question?index=${index}&cod=${cod ?? ''}`);
+      if (!res.ok) throw new Error('Eroare server');
+      const data: IntrebarePrimita = await res.json();
+      setIntrebareCurenta(data);
+      setTotalIntrebari(data.total);
+    } catch (e) {
+      console.error('Eroare la încărcarea întrebării:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cod]);
+
+  // Încarcă prima întrebare la mount
   useEffect(() => {
-    const shuffleArray = (array) => {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    };
-
-    const intrebariNoi = shuffleArray(INTREBARI).map(q => ({
-      ...q,
-      optiuni: shuffleArray(q.optiuni)
-    }));
-
-    setIntrebariSuflate(intrebariNoi);
-    setIsReady(true);
-  }, []);
+    incarcaIntrebare(0);
+  }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -313,7 +70,7 @@ function TestRezidentiatContent() {
   }, []);
 
   useEffect(() => {
-    if (stare !== 'activ' || !isReady) return;
+    if (stare !== 'activ' || isLoading) return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
@@ -323,9 +80,9 @@ function TestRezidentiatContent() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare, isReady]);
+  }, [stare, isLoading]);
 
-  const terminaTest = useCallback((motiv) => {
+  const terminaTest = useCallback((motiv: string) => {
     if (stareRef.current !== 'activ') return;
     const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
     motivRef.current = motiv;
@@ -334,18 +91,33 @@ function TestRezidentiatContent() {
     setStare(admis ? 'promovat' : 'picat');
   }, []);
 
-  const handleConfirm = () => {
-    if (optiuneSelectata === null || feedback) return;
+  const handleConfirm = async () => {
+    if (!optiuneSelectata || feedback || !intrebareCurenta) return;
 
-    const intrebareCurenta = intrebariSuflate[indexCurent];
-    const esteGresit = optiuneSelectata !== intrebareCurenta.raspunsCorect;
+    let corect = false;
+    try {
+      const res = await fetch('/api/test/bls/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          index: indexCurent,
+          raspunsUser: optiuneSelectata,
+          cod: cod ?? '',
+        }),
+      });
+      const data = await res.json();
+      corect = data.corect;
+    } catch (e) {
+      console.error('Eroare la verificare:', e);
+      return;
+    }
 
-    if (esteGresit) {
+    if (!corect) {
       setFeedback('gresit');
       intrebariGresiteRef.current.push({
         intrebare: intrebareCurenta.intrebare,
         raspunsdat: optiuneSelectata,
-        raspunsCorect: intrebareCurenta.raspunsCorect,
+        // Nu stim raspunsul corect pe client — e intentionat
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
@@ -358,13 +130,15 @@ function TestRezidentiatContent() {
       setFeedback('corect');
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
-      if (indexCurent + 1 >= intrebariSuflate.length) {
+      const urmatorulIndex = indexCurent + 1;
+      if (urmatorulIndex >= totalIntrebari) {
         terminaTest('finalizat');
       } else {
-        setIndexCurent((prev) => prev + 1);
+        setIndexCurent(urmatorulIndex);
+        await incarcaIntrebare(urmatorulIndex);
       }
     }, 600);
   };
@@ -387,15 +161,18 @@ function TestRezidentiatContent() {
     }
   }, [stare, cod, submitting]);
 
-  const formatTimp = (sec) => {
+  const formatTimp = (sec: number) => {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
 
-  // Prevenim eroarea de Hydration afișând un loader până când întrebările sunt amestecate
-  if (!isReady) {
-    return <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">Se încarcă testul...</main>;
+  if (isLoading || !intrebareCurenta) {
+    return (
+      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
+        Se încarcă testul...
+      </main>
+    );
   }
 
   if (stare === 'picat' || stare === 'promovat') {
@@ -419,52 +196,61 @@ function TestRezidentiatContent() {
                 <p className="text-lg font-black text-white">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
               </div>
             </div>
-            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase">Înapoi la Dashboard</button>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase"
+            >
+              Înapoi la Dashboard
+            </button>
           </div>
         </div>
       </main>
     );
   }
 
-  const intrebareCurenta = intrebariSuflate[indexCurent];
-
   return (
     <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative">
       <div className="flex-grow flex items-center justify-center p-6 pt-20">
         <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl p-8 space-y-6">
-           <div className="flex justify-between border-b border-[#2E2724] pb-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
-                <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
-                <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
-              </div>
-           </div>
-           <header>
-              <p className="text-[10px] font-bold text-[#C0392B] uppercase">Întrebarea {indexCurent + 1} / {intrebariSuflate.length}</p>
-              <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta?.intrebare}</h2>
-           </header>
-           <section className="space-y-3">
-              {intrebareCurenta?.optiuni.map((optiune, i) => (
-                <button
-                  key={i}
-                  disabled={!!feedback}
-                  onClick={() => setOptiuneSelectata(optiune)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all ${optiuneSelectata === optiune ? 'bg-[#C0392B] border-[#C0392B]' : 'bg-[#231E1C] border-[#2E2724]'}`}
-                >
-                  <span className="text-sm">{optiune}</span>
-                </button>
-              ))}
-           </section>
-           <button
-             onClick={handleConfirm}
-             disabled={!optiuneSelectata || !!feedback}
-             className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
-           >
-             {feedback ? 'Procesare...' : 'Confirmă'}
-           </button>
+          <div className="flex justify-between border-b border-[#2E2724] pb-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
+              <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
+              <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
+            </div>
+          </div>
+          <header>
+            <p className="text-[10px] font-bold text-[#C0392B] uppercase">
+              Întrebarea {indexCurent + 1} / {totalIntrebari}
+            </p>
+            <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta.intrebare}</h2>
+          </header>
+          <section className="space-y-3">
+            {intrebareCurenta.optiuni.map((optiune, i) => (
+              <button
+                key={i}
+                disabled={!!feedback}
+                onClick={() => setOptiuneSelectata(optiune)}
+                className={`w-full p-4 rounded-lg border text-left transition-all ${
+                  optiuneSelectata === optiune
+                    ? 'bg-[#C0392B] border-[#C0392B]'
+                    : 'bg-[#231E1C] border-[#2E2724]'
+                }`}
+              >
+                <span className="text-sm">{optiune}</span>
+              </button>
+            ))}
+          </section>
+          <button
+            onClick={handleConfirm}
+            disabled={!optiuneSelectata || !!feedback}
+            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
+          >
+            {feedback ? 'Procesare...' : 'Confirmă'}
+          </button>
         </div>
       </div>
     </main>

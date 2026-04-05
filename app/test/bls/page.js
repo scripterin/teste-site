@@ -3,186 +3,61 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const INTREBARI = [
-  {
-    id: 1,
-    intrebare: 'La fața locului găsești un pacient inconștient dar care respiră. Care este conduita corectă?',
-    optiuni: [
-      'Începi masajul cardiac imediat',
-      'Îl pui în poziția laterală de siguranță',
-      'Îi administrezi adrenalină 1 ml',
-      'Îl urci direct pe targă fără evaluare'
-    ],
-    raspunsCorect: 'Îl pui în poziția laterală de siguranță'
-  },
-  {
-    id: 2,
-    intrebare: 'În evaluarea inițială a pacientului, metoda P.A.S înseamnă:',
-    optiuni: [
-      'Privește, Ascultă, Simte',
-      'Puls, Aer, Saturație',
-      'Palpează, Ascultă, Susține',
-      'Presiune, Aer, Sistem'
-    ],
-    raspunsCorect: 'Privește, Ascultă, Simte'
-  },
-  {
-    id: 3,
-    intrebare: 'La un pacient cu luxație de gleznă, care este primul gest corect după examinare?',
-    optiuni: [
-      'Administrare de antibiotice',
-      'Efectuarea manevrei de defibrilare',
-      'Aplicarea unei atele pentru imobilizare',
-      'Administrare de morfină intravenos'
-    ],
-    raspunsCorect: 'Aplicarea unei atele pentru imobilizare'
-  },
-  {
-    id: 4,
-    intrebare: 'Într-un accident rutier cu pacient stabil, ce măsură este esențială înainte de transport?',
-    optiuni: [
-      'Administrare de adrenalină',
-      'Începerea resuscitării cardio-pulmonare',
-      'Administrare de hidrocortizon 500 mg',
-      'Aplicarea gulerului cervical'
-    ],
-    raspunsCorect: 'Aplicarea gulerului cervical'
-  },
-  {
-    id: 5,
-    intrebare: 'La un pacient în stop cardio-respirator, protocolul corect de resuscitare este:',
-    optiuni: [
-      '15 compresii toracice + 1 ventilație',
-      '30 compresii toracice + 2 ventilații',
-      '10 compresii toracice + 5 ventilații',
-      'Doar ventilații, fără masaj cardiac'
-    ],
-    raspunsCorect: '30 compresii toracice + 2 ventilații'
-  },
-  {
-    id: 6,
-    intrebare: 'La un pacient implicat într-un accident rutier, observi răni deschise cu sângerare. Care este conduita corectă?',
-    optiuni: [
-      'Cureți, dezinfectezi și pansezi rana',
-      'Aplici direct o atelă ghipsată',
-      'Administrezi morfină pentru durere',
-      'Îl urci pe targă fără să atingi rănile'
-    ],
-    raspunsCorect: 'Cureți, dezinfectezi și pansezi rana'
-  },
-  {
-    id: 7,
-    intrebare: 'În cazul arsurilor, tratamentul corect inițial este:',
-    optiuni: [
-      'Administrare de morfină și monitorizare',
-      'Defibrilare și masaj cardiac',
-      'Aplicare de Dermazin și folie pentru arsuri',
-      'Administrare de antibiotice imediat'
-    ],
-    raspunsCorect: 'Aplicare de Dermazin și folie pentru arsuri'
-  },
-  {
-    id: 8,
-    intrebare: 'Pacient cu căi respiratorii blocate și fără puls. Care este primul pas?',
-    optiuni: [
-      'Administrare de adrenalină',
-      'Eliberarea căilor respiratorii și CPR',
-      'Poziție laterală de siguranță',
-      'Curățarea zonei cu betadină'
-    ],
-    raspunsCorect: 'Eliberarea căilor respiratorii și CPR'
-  },
-  {
-    id: 9,
-    intrebare: 'În șoc anafilactic, tratamentul corect de primă linie este:',
-    optiuni: [
-      'Administrare de Morfină',
-      'Administrare de Adrenalină / Hidrocortizon',
-      'Administrare de Antibiotic',
-      'Administrare de Voltaren sau Paracetamol'
-    ],
-    raspunsCorect: 'Administrare de Adrenalină / Hidrocortizon'
-  },
-  {
-    id: 10,
-    intrebare: 'La dureri insuportabile post-traumatice, ce medicație este indicată?',
-    optiuni: [
-      'Administrare de Morfină intravenos',
-      'Administrare de Vitamina C',
-      'Administrare de Paracetamol simplu',
-      'Administrare de Strepsils'
-    ],
-    raspunsCorect: 'Administrare de Morfină intravenos'
-  },
-  {
-    id: 11,
-    intrebare: 'În cazul unui pacient înecat aflat în stop cardio-respirator, ce trebuie să observi în timpul resuscitării?',
-    optiuni: [
-      'Creșterea tensiunii arteriale',
-      'Scăderea bruscă a temperaturii',
-      'Eliminarea apei din căile respiratorii',
-      'Apariția reflexului de durere'
-    ],
-    raspunsCorect: 'Eliminarea apei din căile respiratorii'
-  },
-  {
-    id: 12,
-    intrebare: 'Naloxona este utilizată în:',
-    optiuni: [
-      'Intoxicații cu substanțe interzise',
-      'Intoxicații cu medicamente',
-      'Arsuri de gradul III',
-      'Fracturi deschise de membru'
-    ],
-    raspunsCorect: 'Intoxicații cu substanțe interzise'
-  }
-];
 
 const TIMP_TOTAL = 180;
 const MAX_GRESELI = 2;
+
+interface IntrebarePrimita {
+  index: number;
+  total: number;
+  intrebare: string;
+  optiuni: string[];
+}
 
 function TestBLSContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cod = searchParams.get('cod');
 
-  const [intrebariSuflate, setIntrebariSuflate] = useState([]);
-  const [isReady, setIsReady] = useState(false);
-  
+  const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
+  const [totalIntrebari, setTotalIntrebari] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [indexCurent, setIndexCurent] = useState(0);
-  const [optiuneSelectata, setOptiuneSelectata] = useState(null);
+  const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
   const [timpRamas, setTimpRamas] = useState(TIMP_TOTAL);
-  const [stare, setStare] = useState('activ');
+  const [stare, setStare] = useState<'activ' | 'promovat' | 'picat'>('activ');
   const [motivFinal, setMotivFinal] = useState('');
-  const [feedback, setFeedback] = useState(null);
+  const [feedback, setFeedback] = useState<'corect' | 'gresit' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const timpRamasRef = useRef(TIMP_TOTAL);
   const greseliRef = useRef(0);
-  const stareRef = useRef('activ');
-  const intrebariGresiteRef = useRef([]);
+  const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
+  const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // SHUFFLE LOGIC - Rulează doar pe Client
+  // Încarcă întrebarea curentă de la server
+  const incarcaIntrebare = useCallback(async (index: number) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/test/bls/question?index=${index}&cod=${cod ?? ''}`);
+      if (!res.ok) throw new Error('Eroare server');
+      const data: IntrebarePrimita = await res.json();
+      setIntrebareCurenta(data);
+      setTotalIntrebari(data.total);
+    } catch (e) {
+      console.error('Eroare la încărcarea întrebării:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cod]);
+
+  // Încarcă prima întrebare la mount
   useEffect(() => {
-    const shuffleArray = (array) => {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    };
-
-    const intrebariNoi = shuffleArray(INTREBARI).map(q => ({
-      ...q,
-      optiuni: shuffleArray(q.optiuni)
-    }));
-
-    setIntrebariSuflate(intrebariNoi);
-    setIsReady(true);
-  }, []);
+    incarcaIntrebare(0);
+  }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -195,7 +70,7 @@ function TestBLSContent() {
   }, []);
 
   useEffect(() => {
-    if (stare !== 'activ' || !isReady) return;
+    if (stare !== 'activ' || isLoading) return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
@@ -205,9 +80,9 @@ function TestBLSContent() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare, isReady]);
+  }, [stare, isLoading]);
 
-  const terminaTest = useCallback((motiv) => {
+  const terminaTest = useCallback((motiv: string) => {
     if (stareRef.current !== 'activ') return;
     const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
     motivRef.current = motiv;
@@ -216,18 +91,33 @@ function TestBLSContent() {
     setStare(admis ? 'promovat' : 'picat');
   }, []);
 
-  const handleConfirm = () => {
-    if (optiuneSelectata === null || feedback) return;
+  const handleConfirm = async () => {
+    if (!optiuneSelectata || feedback || !intrebareCurenta) return;
 
-    const intrebareCurenta = intrebariSuflate[indexCurent];
-    const esteGresit = optiuneSelectata !== intrebareCurenta.raspunsCorect;
+    let corect = false;
+    try {
+      const res = await fetch('/api/test/bls/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          index: indexCurent,
+          raspunsUser: optiuneSelectata,
+          cod: cod ?? '',
+        }),
+      });
+      const data = await res.json();
+      corect = data.corect;
+    } catch (e) {
+      console.error('Eroare la verificare:', e);
+      return;
+    }
 
-    if (esteGresit) {
+    if (!corect) {
       setFeedback('gresit');
       intrebariGresiteRef.current.push({
         intrebare: intrebareCurenta.intrebare,
         raspunsdat: optiuneSelectata,
-        raspunsCorect: intrebareCurenta.raspunsCorect,
+        // Nu stim raspunsul corect pe client — e intentionat
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
@@ -240,13 +130,15 @@ function TestBLSContent() {
       setFeedback('corect');
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
-      if (indexCurent + 1 >= intrebariSuflate.length) {
+      const urmatorulIndex = indexCurent + 1;
+      if (urmatorulIndex >= totalIntrebari) {
         terminaTest('finalizat');
       } else {
-        setIndexCurent((prev) => prev + 1);
+        setIndexCurent(urmatorulIndex);
+        await incarcaIntrebare(urmatorulIndex);
       }
     }, 600);
   };
@@ -269,15 +161,18 @@ function TestBLSContent() {
     }
   }, [stare, cod, submitting]);
 
-  const formatTimp = (sec) => {
+  const formatTimp = (sec: number) => {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
 
-  // Prevenim eroarea de Hydration afișând un loader până când întrebările sunt amestecate
-  if (!isReady) {
-    return <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">Se încarcă testul...</main>;
+  if (isLoading || !intrebareCurenta) {
+    return (
+      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
+        Se încarcă testul...
+      </main>
+    );
   }
 
   if (stare === 'picat' || stare === 'promovat') {
@@ -301,52 +196,61 @@ function TestBLSContent() {
                 <p className="text-lg font-black text-white">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
               </div>
             </div>
-            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase">Înapoi la Dashboard</button>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase"
+            >
+              Înapoi la Dashboard
+            </button>
           </div>
         </div>
       </main>
     );
   }
 
-  const intrebareCurenta = intrebariSuflate[indexCurent];
-
   return (
     <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative">
       <div className="flex-grow flex items-center justify-center p-6 pt-20">
         <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl p-8 space-y-6">
-           <div className="flex justify-between border-b border-[#2E2724] pb-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
-                <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
-                <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
-              </div>
-           </div>
-           <header>
-              <p className="text-[10px] font-bold text-[#C0392B] uppercase">Întrebarea {indexCurent + 1} / {intrebariSuflate.length}</p>
-              <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta?.intrebare}</h2>
-           </header>
-           <section className="space-y-3">
-              {intrebareCurenta?.optiuni.map((optiune, i) => (
-                <button
-                  key={i}
-                  disabled={!!feedback}
-                  onClick={() => setOptiuneSelectata(optiune)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all ${optiuneSelectata === optiune ? 'bg-[#C0392B] border-[#C0392B]' : 'bg-[#231E1C] border-[#2E2724]'}`}
-                >
-                  <span className="text-sm">{optiune}</span>
-                </button>
-              ))}
-           </section>
-           <button
-             onClick={handleConfirm}
-             disabled={!optiuneSelectata || !!feedback}
-             className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
-           >
-             {feedback ? 'Procesare...' : 'Confirmă'}
-           </button>
+          <div className="flex justify-between border-b border-[#2E2724] pb-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
+              <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
+              <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
+            </div>
+          </div>
+          <header>
+            <p className="text-[10px] font-bold text-[#C0392B] uppercase">
+              Întrebarea {indexCurent + 1} / {totalIntrebari}
+            </p>
+            <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta.intrebare}</h2>
+          </header>
+          <section className="space-y-3">
+            {intrebareCurenta.optiuni.map((optiune, i) => (
+              <button
+                key={i}
+                disabled={!!feedback}
+                onClick={() => setOptiuneSelectata(optiune)}
+                className={`w-full p-4 rounded-lg border text-left transition-all ${
+                  optiuneSelectata === optiune
+                    ? 'bg-[#C0392B] border-[#C0392B]'
+                    : 'bg-[#231E1C] border-[#2E2724]'
+                }`}
+              >
+                <span className="text-sm">{optiune}</span>
+              </button>
+            ))}
+          </section>
+          <button
+            onClick={handleConfirm}
+            disabled={!optiuneSelectata || !!feedback}
+            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
+          >
+            {feedback ? 'Procesare...' : 'Confirmă'}
+          </button>
         </div>
       </div>
     </main>

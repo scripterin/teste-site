@@ -3,186 +3,61 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const INTREBARI = [
-  {
-    id: 1,
-    intrebare: 'Ești la o intervenție unde se aud focuri de armă și există risc major. Ce mesaj corect transmiți?',
-    optiuni: [
-      'M-CALLSIGN, 10-50',
-      'M-CALLSIGN, 10-11',
-      'M-CALLSIGN, 10-0, 10-20 <locația>',
-      'M-CALLSIGN, 10-33'
-    ],
-    raspunsCorect: 'M-CALLSIGN, 10-0, 10-20 <locația>'
-  },
-  {
-    id: 2,
-    intrebare: 'Primești un mesaj radio dar nu l-ai înțeles complet. Cum răspunzi corect?',
-    optiuni: [
-      '10-4',
-      '10-1',
-      '10-20',
-      '10-9'
-    ],
-    raspunsCorect: '10-9'
-  },
-  {
-    id: 3,
-    intrebare: 'Ajungi la locul solicitării și constați că nu este nimeni acolo. Ce cod utilizezi?',
-    optiuni: [
-      '10-11',
-      '10-0',
-      '10-50',
-      '10-55'
-    ],
-    raspunsCorect: '10-11'
-  },
-  {
-    id: 4,
-    intrebare: 'Cum soliciți liniște pe stație pentru o intervenție importantă?',
-    optiuni: [
-      '10-20',
-      '10-33',
-      '10-39',
-      '10-78'
-    ],
-    raspunsCorect: '10-33'
-  },
-  {
-    id: 5,
-    intrebare: 'Ești în deplasare către o intervenție și vrei să anunți acest lucru. Ce mesaj este corect?',
-    optiuni: [
-      'M-CALLSIGN, 10-55',
-      'M-CALLSIGN, 10-4',
-      'M-CALLSIGN, 10-76',
-      'M-CALLSIGN, 10-41'
-    ],
-    raspunsCorect: 'M-CALLSIGN, 10-76'
-  },
-  {
-    id: 6,
-    intrebare: 'La fața locului situația scapă de sub control și ai nevoie urgent de ajutor. Ce cod folosești?',
-    optiuni: [
-      '10-1',
-      '10-78',
-      '10-95',
-      '10-100'
-    ],
-    raspunsCorect: '10-78'
-  },
-  {
-    id: 7,
-    intrebare: 'Cum anunți finalizarea unui apel?',
-    optiuni: [
-      '10-76',
-      '10-50',
-      '10-33',
-      '10-55'
-    ],
-    raspunsCorect: '10-55'
-  },
-  {
-    id: 8,
-    intrebare: 'Ai un pacient conștient aflat în custodie și îl transporți la spital. Ce variantă este corectă?',
-    optiuni: [
-      'M-CALLSIGN, 10-50, 10-20',
-      'M-CALLSIGN, 10-95 conștient, 10-76 spital',
-      'M-CALLSIGN, 10-95 inconștient, 10-76 spital',
-      'M-CALLSIGN, 10-78'
-    ],
-    raspunsCorect: 'M-CALLSIGN, 10-95 conștient, 10-76 spital'
-  },
-  {
-    id: 9,
-    intrebare: 'Ce cod este utilizat pentru a anunța regruparea?',
-    optiuni: [
-      '10-39',
-      '10-20',
-      '10-33',
-      '10-76'
-    ],
-    raspunsCorect: '10-39'
-  },
-  {
-    id: 10,
-    intrebare: 'Codul de asistență 78 semnifică:',
-    optiuni: [
-      'Apel finalizat',
-      'Necesitate poliție',
-      'Asistență suplimentară',
-      'Închidere stație'
-    ],
-    raspunsCorect: 'Asistență suplimentară'
-  },
-  {
-    id: 11,
-    intrebare: 'Primești informația că zona este sigură și poți interveni. Ce cod de asistență corespunde?',
-    optiuni: [
-      '5',
-      '6',
-      '7',
-      '0'
-    ],
-    raspunsCorect: '6'
-  },
-  {
-    id: 12,
-    intrebare: 'Ești implicat într-un accident și nu mai poți ajunge la apelul inițial. Cum formulezi corect mesajul?',
-    optiuni: [
-      'M-CALLSIGN, 10-50 major/minor, nu mai pot ajunge',
-      'M-CALLSIGN, 10-55',
-      'M-CALLSIGN, 10-11',
-      'M-CALLSIGN, 10-33'
-    ],
-    raspunsCorect: 'M-CALLSIGN, 10-50 major/minor, nu mai pot ajunge'
-  }
-];
 
 const TIMP_TOTAL = 150;
 const MAX_GRESELI = 2;
+
+interface IntrebarePrimita {
+  index: number;
+  total: number;
+  intrebare: string;
+  optiuni: string[];
+}
 
 function TestRadioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cod = searchParams.get('cod');
 
-  const [intrebariSuflate, setIntrebariSuflate] = useState([]);
-  const [isReady, setIsReady] = useState(false);
-  
+  const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
+  const [totalIntrebari, setTotalIntrebari] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [indexCurent, setIndexCurent] = useState(0);
-  const [optiuneSelectata, setOptiuneSelectata] = useState(null);
+  const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
   const [timpRamas, setTimpRamas] = useState(TIMP_TOTAL);
-  const [stare, setStare] = useState('activ');
+  const [stare, setStare] = useState<'activ' | 'promovat' | 'picat'>('activ');
   const [motivFinal, setMotivFinal] = useState('');
-  const [feedback, setFeedback] = useState(null);
+  const [feedback, setFeedback] = useState<'corect' | 'gresit' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const timpRamasRef = useRef(TIMP_TOTAL);
   const greseliRef = useRef(0);
-  const stareRef = useRef('activ');
-  const intrebariGresiteRef = useRef([]);
+  const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
+  const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // SHUFFLE LOGIC - Rulează doar pe Client
+  // Încarcă întrebarea curentă de la server
+  const incarcaIntrebare = useCallback(async (index: number) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/test/bls/question?index=${index}&cod=${cod ?? ''}`);
+      if (!res.ok) throw new Error('Eroare server');
+      const data: IntrebarePrimita = await res.json();
+      setIntrebareCurenta(data);
+      setTotalIntrebari(data.total);
+    } catch (e) {
+      console.error('Eroare la încărcarea întrebării:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cod]);
+
+  // Încarcă prima întrebare la mount
   useEffect(() => {
-    const shuffleArray = (array) => {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    };
-
-    const intrebariNoi = shuffleArray(INTREBARI).map(q => ({
-      ...q,
-      optiuni: shuffleArray(q.optiuni)
-    }));
-
-    setIntrebariSuflate(intrebariNoi);
-    setIsReady(true);
-  }, []);
+    incarcaIntrebare(0);
+  }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -195,7 +70,7 @@ function TestRadioContent() {
   }, []);
 
   useEffect(() => {
-    if (stare !== 'activ' || !isReady) return;
+    if (stare !== 'activ' || isLoading) return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
@@ -205,9 +80,9 @@ function TestRadioContent() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare, isReady]);
+  }, [stare, isLoading]);
 
-  const terminaTest = useCallback((motiv) => {
+  const terminaTest = useCallback((motiv: string) => {
     if (stareRef.current !== 'activ') return;
     const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
     motivRef.current = motiv;
@@ -216,18 +91,33 @@ function TestRadioContent() {
     setStare(admis ? 'promovat' : 'picat');
   }, []);
 
-  const handleConfirm = () => {
-    if (optiuneSelectata === null || feedback) return;
+  const handleConfirm = async () => {
+    if (!optiuneSelectata || feedback || !intrebareCurenta) return;
 
-    const intrebareCurenta = intrebariSuflate[indexCurent];
-    const esteGresit = optiuneSelectata !== intrebareCurenta.raspunsCorect;
+    let corect = false;
+    try {
+      const res = await fetch('/api/test/bls/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          index: indexCurent,
+          raspunsUser: optiuneSelectata,
+          cod: cod ?? '',
+        }),
+      });
+      const data = await res.json();
+      corect = data.corect;
+    } catch (e) {
+      console.error('Eroare la verificare:', e);
+      return;
+    }
 
-    if (esteGresit) {
+    if (!corect) {
       setFeedback('gresit');
       intrebariGresiteRef.current.push({
         intrebare: intrebareCurenta.intrebare,
         raspunsdat: optiuneSelectata,
-        raspunsCorect: intrebareCurenta.raspunsCorect,
+        // Nu stim raspunsul corect pe client — e intentionat
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
@@ -240,13 +130,15 @@ function TestRadioContent() {
       setFeedback('corect');
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
-      if (indexCurent + 1 >= intrebariSuflate.length) {
+      const urmatorulIndex = indexCurent + 1;
+      if (urmatorulIndex >= totalIntrebari) {
         terminaTest('finalizat');
       } else {
-        setIndexCurent((prev) => prev + 1);
+        setIndexCurent(urmatorulIndex);
+        await incarcaIntrebare(urmatorulIndex);
       }
     }, 600);
   };
@@ -269,15 +161,18 @@ function TestRadioContent() {
     }
   }, [stare, cod, submitting]);
 
-  const formatTimp = (sec) => {
+  const formatTimp = (sec: number) => {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
 
-  // Prevenim eroarea de Hydration afișând un loader până când întrebările sunt amestecate
-  if (!isReady) {
-    return <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">Se încarcă testul...</main>;
+  if (isLoading || !intrebareCurenta) {
+    return (
+      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
+        Se încarcă testul...
+      </main>
+    );
   }
 
   if (stare === 'picat' || stare === 'promovat') {
@@ -301,52 +196,61 @@ function TestRadioContent() {
                 <p className="text-lg font-black text-white">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
               </div>
             </div>
-            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase">Înapoi la Dashboard</button>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase"
+            >
+              Înapoi la Dashboard
+            </button>
           </div>
         </div>
       </main>
     );
   }
 
-  const intrebareCurenta = intrebariSuflate[indexCurent];
-
   return (
     <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative">
       <div className="flex-grow flex items-center justify-center p-6 pt-20">
         <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl p-8 space-y-6">
-           <div className="flex justify-between border-b border-[#2E2724] pb-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
-                <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
-                <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
-              </div>
-           </div>
-           <header>
-              <p className="text-[10px] font-bold text-[#C0392B] uppercase">Întrebarea {indexCurent + 1} / {intrebariSuflate.length}</p>
-              <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta?.intrebare}</h2>
-           </header>
-           <section className="space-y-3">
-              {intrebareCurenta?.optiuni.map((optiune, i) => (
-                <button
-                  key={i}
-                  disabled={!!feedback}
-                  onClick={() => setOptiuneSelectata(optiune)}
-                  className={`w-full p-4 rounded-lg border text-left transition-all ${optiuneSelectata === optiune ? 'bg-[#C0392B] border-[#C0392B]' : 'bg-[#231E1C] border-[#2E2724]'}`}
-                >
-                  <span className="text-sm">{optiune}</span>
-                </button>
-              ))}
-           </section>
-           <button
-             onClick={handleConfirm}
-             disabled={!optiuneSelectata || !!feedback}
-             className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
-           >
-             {feedback ? 'Procesare...' : 'Confirmă'}
-           </button>
+          <div className="flex justify-between border-b border-[#2E2724] pb-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
+              <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
+              <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
+            </div>
+          </div>
+          <header>
+            <p className="text-[10px] font-bold text-[#C0392B] uppercase">
+              Întrebarea {indexCurent + 1} / {totalIntrebari}
+            </p>
+            <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta.intrebare}</h2>
+          </header>
+          <section className="space-y-3">
+            {intrebareCurenta.optiuni.map((optiune, i) => (
+              <button
+                key={i}
+                disabled={!!feedback}
+                onClick={() => setOptiuneSelectata(optiune)}
+                className={`w-full p-4 rounded-lg border text-left transition-all ${
+                  optiuneSelectata === optiune
+                    ? 'bg-[#C0392B] border-[#C0392B]'
+                    : 'bg-[#231E1C] border-[#2E2724]'
+                }`}
+              >
+                <span className="text-sm">{optiune}</span>
+              </button>
+            ))}
+          </section>
+          <button
+            onClick={handleConfirm}
+            disabled={!optiuneSelectata || !!feedback}
+            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase"
+          >
+            {feedback ? 'Procesare...' : 'Confirmă'}
+          </button>
         </div>
       </div>
     </main>
