@@ -65,6 +65,7 @@ export async function POST(request) {
 
 
     const CODE_EXPIRY_MS = 5 * 60 * 1000; // 5 minute
+    const expiresAt = new Date(now.getTime() + CODE_EXPIRY_MS);
 
     await Code.create({
       userId,
