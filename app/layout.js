@@ -5,10 +5,10 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Departamentul Medical FPlayT',
-  description: 'Sistem de testare pentru Departamentul Medical FPlayT FiveM',
+  title: 'SITE TESTE MEDICI',
+  description: 'SITE TESTE',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/logo.png',
   },
 };
 
