@@ -39,7 +39,7 @@ function TestRadioContent() {
   const incarcaIntrebare = useCallback(async (index: number) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/test/smuls-teoretic/question?index=${index}&cod=${cod ?? ''}`);
+      const res = await fetch(`/api/test/radio/question?index=${index}&cod=${cod ?? ''}`);
       if (!res.ok) throw new Error('Eroare server');
       const data: IntrebarePrimita = await res.json();
       setIntrebareCurenta(data);

@@ -86,7 +86,7 @@ function TestBLSContent() {
     let corect = false;
     let raspunsCorect = '';
     try {
-      const res = await fetch('/api/test/smuls-teoretic/verify', {
+      const res = await fetch('/api/test/bls/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ index: indexCurent, raspunsUser: optiuneSelectata, cod: cod ?? '' }),
