@@ -30,7 +30,6 @@ export async function POST(request) {
     const userId = session.user.discordId;
     const codUpper = cod.trim().toUpperCase();
 
-    // Caută codul în baza de date
     const codeDoc = await Code.findOne({ cod: codUpper });
 
     if (!codeDoc) {
@@ -40,7 +39,6 @@ export async function POST(request) {
       );
     }
 
-    // Verifică dacă aparține utilizatorului curent
     if (codeDoc.userId !== userId) {
       return NextResponse.json(
         { error: 'Acest cod nu îți aparține.' },
@@ -48,7 +46,6 @@ export async function POST(request) {
       );
     }
 
-    // Verifică dacă a fost deja folosit
     if (codeDoc.used) {
       return NextResponse.json(
         { error: 'Codul a fost deja folosit.' },
@@ -56,13 +53,7 @@ export async function POST(request) {
       );
     }
 
-    // Verifică dacă nu a expirat
-    if (new Date() > codeDoc.expiresAt) {
-      return NextResponse.json(
-        { error: 'Codul a expirat. Solicită un cod nou.' },
-        { status: 410 }
-      );
-    }
+    // FIX: eliminat check expiresAt — expirarea e gestionată prin deleteMany la generare nouă
 
     return NextResponse.json({
       success: true,
@@ -79,7 +70,6 @@ export async function POST(request) {
   }
 }
 
-// Marchează codul ca folosit (apelat la start test)
 export async function PATCH(request) {
   try {
     const session = await getServerSession(authOptions);
