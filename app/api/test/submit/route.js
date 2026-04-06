@@ -24,9 +24,8 @@ function getCooldownDate(testName) {
 
   const [zi, luna, an] = acumRO.split('.').map(Number);
 
-
   const dataFinala = new Date(Date.UTC(an, luna - 1, zi));
-  dataFinala.setUTCDate(dataFinala.getUTCDate() + zile);
+  dataFinala.setUTCDate(dataFinala.getUTCDate() + zile - 1);
   dataFinala.setUTCHours(23, 59, 59, 999);
 
   return dataFinala;
