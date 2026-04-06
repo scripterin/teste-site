@@ -9,30 +9,24 @@ import TestButtons from '@/components/TestButtons';
 
 const notify = (type, text) => {
   const base = {
-    background: '#1A1614',
+    background: 'rgba(20,16,14,0.95)',
+    backdropFilter: 'blur(12px)',
     color: '#F0EAE8',
     fontSize: '11px',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    padding: '14px 20px',
-    borderRadius: '4px',
+    fontWeight: '600',
+    letterSpacing: '0.12em',
+    padding: '12px 18px',
+    borderRadius: '12px',
     fontFamily: 'monospace',
-    minWidth: '320px',
-    boxShadow: '0 10px 40px rgba(0,0,0,0.7)',
-    border: '1px solid #2E2724',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    border: '1px solid rgba(255,255,255,0.08)',
   };
-  
   const themes = {
-    success: { ...base, borderLeft: '4px solid #C0392B', color: '#F0EAE8' },
-    error:   { ...base, borderLeft: '4px solid #7C3030', color: '#ffb3b0' },
-    info:    { ...base, borderLeft: '4px solid #8A7E7C', color: '#E1BFB9' },
+    success: { ...base, borderLeft: '3px solid #C0392B' },
+    error:   { ...base, borderLeft: '3px solid #7C3030', color: '#ffb3b0' },
+    info:    { ...base, borderLeft: '3px solid rgba(255,255,255,0.2)', color: '#E1BFB9' },
   };
-
-  toast(text, {
-    style: themes[type] || themes.info,
-    icon: type === 'success' ? '✔' : type === 'error' ? '✖' : 'ℹ',
-  });
+  toast(text, { style: themes[type] || themes.info, icon: null });
 };
 
 export default function Dashboard() {
@@ -50,10 +44,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (code.length === 6) handleValidateCode();
-    else { 
-      setCodeValid(false); 
-      setValidatedTest(null); 
-    }
+    else { setCodeValid(false); setValidatedTest(null); }
   }, [code]);
 
   const handleGenerateCode = async () => {
@@ -67,12 +58,9 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (!res.ok) notify('error', data.error || 'Eroare la generare.');
-      else notify('success', 'Cod generat!');
-    } catch { 
-      notify('error', 'Eroare de conexiune la server.'); 
-    } finally { 
-      setLoadingGenerate(false); 
-    }
+      else notify('success', 'Cod trimis pe Discord');
+    } catch { notify('error', 'Eroare de conexiune la server.'); }
+    finally { setLoadingGenerate(false); }
   };
 
   const handleValidateCode = useCallback(async () => {
@@ -86,19 +74,10 @@ export default function Dashboard() {
         body: JSON.stringify({ cod: trimmed }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setCodeValid(true);
-        setValidatedTest(data.testSelectat);
-        notify('success', 'Acces Autorizat!');
-      } else {
-        setCodeValid(false);
-        notify('error', 'Cod test invalid.');
-      }
-    } catch { 
-      setCodeValid(false); 
-    } finally { 
-      setLoadingValidate(false); 
-    }
+      if (res.ok) { setCodeValid(true); setValidatedTest(data.testSelectat); notify('success', 'Acces Autorizat!'); }
+      else { setCodeValid(false); notify('error', 'Cod test invalid.'); }
+    } catch { setCodeValid(false); }
+    finally { setLoadingValidate(false); }
   }, [code]);
 
   const handleStartTest = () => {
@@ -109,7 +88,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (countdown === 0) {
-      // ✅ Map explicit — fără conversii de text care pot da erori
       const testMap = {
         'RADIO': 'radio',
         'BLS': 'bls',
@@ -125,84 +103,190 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
-  const inputBorderColor = codeValid ? '#C0392B' : inputFocused ? '#C0392B' : '#2E2724';
-
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0F0D0D', display: 'flex', flexDirection: 'column' }}>
-      <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
-      
-      <Navbar />
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', position: 'relative' }}>
-        
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(circle, rgba(192,57,43,0.05) 0%, rgba(15,13,13,0) 70%)' }} />
+        .dash-card {
+          animation: fadeUp 0.4s ease both;
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
 
-        <div style={{ position: 'relative', width: '100%', maxWidth: 480, backgroundColor: '#1A1614', border: '1px solid #2E2724', borderRadius: 4, boxShadow: '0 30px 60px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
-          
-          <div style={{ height: 2, backgroundColor: '#C0392B', width: '100%' }} />
+        .btn-solicita {
+          width: 100%;
+          padding: 15px;
+          background: transparent;
+          border: 1px solid rgba(192,57,43,0.5);
+          border-radius: 12px;
+          color: #C0392B;
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .btn-solicita:hover:not(:disabled) {
+          background: rgba(192,57,43,0.08);
+          border-color: #C0392B;
+        }
+        .btn-solicita:disabled { opacity: 0.3; cursor: not-allowed; }
 
-          <div style={{ padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 32 }}>
-            
-            <header>
-              <p style={{ fontSize: 10, fontWeight: 800, color: '#C0392B', letterSpacing: '0.25em', marginBottom: 8 }}>
-                SITE TESTE
-              </p>
-              <h1 style={{ fontSize: 28, fontWeight: 900, color: '#F0EAE8', letterSpacing: '-0.02em', margin: 0 }}>
-                DEP. MEDICAL <span style={{ color: '#C0392B' }}>FPLAYT</span>
-              </h1>
-            </header>
+        .btn-start {
+          width: 100%;
+          padding: 15px;
+          border: none;
+          border-radius: 12px;
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .btn-start.active {
+          background: #C0392B;
+          color: #fff;
+          box-shadow: 0 4px 20px rgba(192,57,43,0.35);
+        }
+        .btn-start.active:hover { background: #A93226; transform: translateY(-1px); }
+        .btn-start.inactive { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); cursor: not-allowed; }
 
-            <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>SELECTEAZĂ TIPUL TESTULUI</label>
-              <TestButtons selected={selectedTest} onSelect={setSelectedTest} />
-            </section>
+        .code-input {
+          width: 100%;
+          height: 64px;
+          background: rgba(0,0,0,0.25);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          text-align: center;
+          font-family: 'DM Mono', monospace;
+          font-size: 26px;
+          letter-spacing: 0.5em;
+          padding-left: 0.5em;
+          color: #F0EAE8;
+          outline: none;
+          transition: all 0.2s;
+        }
+        .code-input:focus { border-color: rgba(192,57,43,0.6); box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
+        .code-input.valid { border-color: #C0392B; color: #C0392B; }
+        .code-input::placeholder { color: rgba(255,255,255,0.1); letter-spacing: 0.4em; }
 
-            <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label style={{ fontSize: 10, fontWeight: 700, color: '#8A7E7C', letterSpacing: '0.1em' }}>COD TEST</label>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
-                placeholder="••••••"
-                maxLength={6}
-                style={{
-                  width: '100%', height: 60, backgroundColor: '#231E1C', border: `1px solid ${inputBorderColor}`, borderRadius: 4, textAlign: 'center', fontFamily: 'monospace', fontSize: 24, letterSpacing: '0.4em', color: '#F0EAE8', outline: 'none', transition: 'all 0.2s'
-                }}
-              />
-              {loadingValidate && <p style={{ fontSize: 11, color: '#C0392B', margin: 0, fontStyle: 'italic' }}>Se verifică protocolul...</p>}
-            </section>
+        .dash-label {
+          font-family: 'DM Mono', monospace;
+          font-size: 9px;
+          letter-spacing: 0.25em;
+          color: rgba(255,255,255,0.25);
+          text-transform: uppercase;
+          margin-bottom: 10px;
+          display: block;
+        }
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <button
-                onClick={handleGenerateCode}
-                disabled={loadingGenerate || !selectedTest}
-                style={{
-                  width: '100%', padding: '16px', backgroundColor: 'transparent', border: '1px solid #C0392B', color: '#C0392B', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: (loadingGenerate || !selectedTest) ? 'not-allowed' : 'pointer', opacity: (loadingGenerate || !selectedTest) ? 0.4 : 1, transition: 'all 0.2s'
-                }}
-              >
-                {loadingGenerate ? 'Generare...' : 'Solicită Cod'}
-              </button>
+        .dash-divider {
+          height: 1px;
+          background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
+          margin: 4px 0;
+        }
+      `}</style>
 
-              <button
-                onClick={handleStartTest}
-                disabled={!codeValid || countdown !== null}
-                style={{
-                  width: '100%', padding: '16px', backgroundColor: codeValid ? '#C0392B' : '#2E2724', border: 'none', color: codeValid ? '#FFF' : '#8A7E7C', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: (!codeValid || countdown !== null) ? 'not-allowed' : 'pointer', transition: 'all 0.2s'
-                }}
-              >
-                {countdown !== null ? `Inițializare (${countdown})` : 'Începe Testul'}
-              </button>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
+        <Navbar />
+
+        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+          <div className="dash-card" style={{ width: '100%', maxWidth: 460 }}>
+
+            {/* Card principal */}
+            <div style={{
+              background: 'rgba(18,14,12,0.72)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 20,
+              boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+              overflow: 'hidden',
+            }}>
+              {/* Accent top */}
+              <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
+
+              <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+                {/* Header */}
+                <header>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
+                    Sistem Examinare
+                  </p>
+                  <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 46, letterSpacing: '0.04em', color: '#F0EAE8', lineHeight: 0.95, margin: 0 }}>
+                    DEP.<br /><span style={{ color: '#C0392B' }}>MEDICAL</span>
+                  </h1>
+                </header>
+
+                <div className="dash-divider" />
+
+                {/* Test buttons */}
+                <div>
+                  <span className="dash-label">Tip test</span>
+                  <TestButtons selected={selectedTest} onSelect={setSelectedTest} />
+                </div>
+
+                <div className="dash-divider" />
+
+                {/* Cod input */}
+                <div>
+                  <span className="dash-label">Cod de acces</span>
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))}
+                    onFocus={() => setInputFocused(true)}
+                    onBlur={() => setInputFocused(false)}
+                    placeholder="——————"
+                    maxLength={6}
+                    className={`code-input${codeValid ? ' valid' : ''}`}
+                  />
+                  {loadingValidate && (
+                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#C0392B', marginTop: 8, letterSpacing: '0.15em' }}>
+                      verificare...
+                    </p>
+                  )}
+                </div>
+
+                {/* Butoane */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <button className="btn-solicita" onClick={handleGenerateCode} disabled={loadingGenerate || !selectedTest}>
+                    {loadingGenerate ? 'generare...' : '+ solicită cod'}
+                  </button>
+                  <button
+                    className={`btn-start ${codeValid && countdown === null ? 'active' : 'inactive'}`}
+                    onClick={handleStartTest}
+                    disabled={!codeValid || countdown !== null}
+                  >
+                    {countdown !== null ? `inițializare (${countdown})` : 'începe testul →'}
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Footer */}
+              <div style={{
+                borderTop: '1px solid rgba(255,255,255,0.04)',
+                padding: '12px 32px',
+                background: 'rgba(0,0,0,0.2)',
+                textAlign: 'center',
+              }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.1)', textTransform: 'uppercase' }}>
+                  Departamentul Medical FPlayT
+                </p>
+              </div>
             </div>
-
           </div>
-
-          <footer style={{ backgroundColor: '#141110', padding: '12px', borderTop: '1px solid #2E2724', textAlign: 'center' }}>
-            <p style={{ fontSize: 9, color: '#4A4240', letterSpacing: '0.1em', margin: 0, fontWeight: 600 }}>ECLIPSE MEDICAL TOWER</p>
-          </footer>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
