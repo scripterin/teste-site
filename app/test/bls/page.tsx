@@ -36,15 +36,6 @@ function TestBLSContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  const terminaTest = useCallback((motiv: string) => {
-    if (stareRef.current !== 'activ') return;
-    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
-    motivRef.current = motiv;
-    stareRef.current = admis ? 'promovat' : 'picat';
-    setMotivFinal(motiv);
-    setStare(admis ? 'promovat' : 'picat');
-  }, []);
-
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
     try {
@@ -62,57 +53,32 @@ function TestBLSContent() {
 
   useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
-  // ANTI-CHEAT: Detecție schimbare tab
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [terminaTest]);
+  }, []);
 
-  // ANTI-REFRESH: Detecție Refresh Pagina / Închidere Tab + OPRIRE TEST
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (stareRef.current !== 'activ') return;
-
-      // 1. OPRIM TESTUL INSTANTANEU ÎN UI
-      // Schimbăm starea imediat, astfel încât dacă utilizatorul apasă "Anulează" 
-      // să rămână pe pagina de RESPINS, nu la întrebări.
-      terminaTest('refresh_pagina');
-
-      // 2. TRIMITEM DATELE LA SERVER (Background)
-      const payload = JSON.stringify({
-        cod,
-        greseli: greseliRef.current,
-        timpRamas: timpRamasRef.current,
-        intrebariGresite: intrebariGresiteRef.current,
-        motiv: 'refresh_pagina',
-      });
-      navigator.sendBeacon('/api/test/submit', payload);
-
-      // 3. DECLANȘĂM DIALOGUL DE BROWSER
-      e.preventDefault();
-      e.returnValue = '';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [cod, terminaTest]);
-
-  // Timer logic
   useEffect(() => {
     if (stare !== 'activ') return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
-      if (timpRamasRef.current <= 0) { 
-        clearInterval(interval); 
-        terminaTest('timp_expirat'); 
-      }
+      if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare, terminaTest]);
+  }, [stare]);
+
+  const terminaTest = useCallback((motiv: string) => {
+    if (stareRef.current !== 'activ') return;
+    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
+    motivRef.current = motiv;
+    stareRef.current = admis ? 'promovat' : 'picat';
+    setMotivFinal(motiv);
+    setStare(admis ? 'promovat' : 'picat');
+  }, []);
 
   const handleConfirm = async () => {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
@@ -141,10 +107,7 @@ function TestBLSContent() {
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
-      if (greseliRef.current > MAX_GRESELI) { 
-        setTimeout(() => terminaTest('greseli_maxime'), 600); 
-        return; 
-      }
+      if (greseliRef.current > MAX_GRESELI) { setTimeout(() => terminaTest('greseli_maxime'), 600); return; }
     } else {
       setFeedback('corect');
     }
@@ -162,13 +125,9 @@ function TestBLSContent() {
     }, 600);
   };
 
-  // Submit automat la finalizare (dacă nu a fost deja trimis prin beacon)
   useEffect(() => {
     if ((stare === 'picat' || stare === 'promovat') && !submitting) {
       if (!cod) return;
-      // Dacă motivul a fost refresh, datele au plecat deja prin beacon
-      if (motivRef.current === 'refresh_pagina') return;
-
       setSubmitting(true);
       fetch('/api/test/submit', {
         method: 'POST',
@@ -229,6 +188,7 @@ function TestBLSContent() {
             <div style={{ height: 2, background: admis ? 'linear-gradient(to right, transparent, #22c55e, transparent)' : 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
             <div style={{ padding: '40px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
+              {/* Icon */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
@@ -249,14 +209,11 @@ function TestBLSContent() {
                   {admis ? 'ADMIS' : 'RESPINS'}
                 </h2>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
-                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (
-                    motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii.' : 
-                    motivFinal === 'refresh_pagina' ? 'Testul a fost anulat din cauza reîncărcării paginii.' :
-                    'Ai acumulat numărul maxim de greșeli permise.'
-                  )}
+                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii.' : 'Ai acumulat numărul maxim de greșeli permise.')}
                 </p>
               </div>
 
+              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Greșeli', value: `${greseli}/3`, red: !admis },
@@ -302,7 +259,6 @@ function TestBLSContent() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         .test-card { animation: fadeIn 0.3s ease both; }
         .opt-btn { transition: all 0.15s ease; }
         .opt-btn:hover:not(:disabled) { border-color: rgba(192,57,43,0.5) !important; background: rgba(192,57,43,0.06) !important; }
@@ -310,9 +266,13 @@ function TestBLSContent() {
 
       <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px' }}>
         <div className="test-card" style={{ width: '100%', maxWidth: 500, ...cardStyle }}>
+
+          {/* Accent top */}
           <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
+
           <div style={{ padding: '28px 28px 24px' }}>
 
+            {/* Header timp + greseli */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 24 }}>
               <div>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Timp Rămas</p>
@@ -330,12 +290,14 @@ function TestBLSContent() {
               </div>
             </div>
 
+            {/* Întrebare */}
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>
                 {intrebareCurenta.intrebare}
               </p>
             </div>
 
+            {/* Opțiuni */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {intrebareCurenta.optiuni.map((optiune, i) => {
                 const isActive = optiuneSelectata === optiune;
@@ -375,6 +337,7 @@ function TestBLSContent() {
               })}
             </div>
 
+            {/* Progress + buton */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ width: '100%', height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', borderRadius: 999, transition: 'width 0.5s ease' }} />
