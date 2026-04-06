@@ -51,42 +51,14 @@ function TestBLSContent() {
     }
   }, [cod]);
 
-  useEffect(() => {
-    // Verifică dacă a fost picat înainte de refresh
-    const anticheatFlag = sessionStorage.getItem('bls_anticheat');
-    if (anticheatFlag === 'true') {
-      sessionStorage.removeItem('bls_anticheat');
-      stareRef.current = 'picat';
-      motivRef.current = 'anticheat';
-      setMotivFinal('anticheat');
-      setStare('picat');
-      setIsInitialLoading(false);
-      return;
-    }
-    incarcaIntrebare(0, true);
-  }, [incarcaIntrebare]);
+  useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
     };
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (stareRef.current === 'activ') {
-        sessionStorage.setItem('bls_anticheat', 'true');
-        terminaTest('anticheat');
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   useEffect(() => {
@@ -216,6 +188,7 @@ function TestBLSContent() {
             <div style={{ height: 2, background: admis ? 'linear-gradient(to right, transparent, #22c55e, transparent)' : 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
             <div style={{ padding: '40px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
+              {/* Icon */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
@@ -236,16 +209,11 @@ function TestBLSContent() {
                   {admis ? 'ADMIS' : 'RESPINS'}
                 </h2>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
-                  {admis
-                    ? 'Felicitări! Ai trecut testul teoretic.'
-                    : motivFinal === 'anticheat'
-                      ? 'Sistemul a detectat părăsirea paginii.'
-                      : motivFinal === 'timp_expirat'
-                        ? 'Timpul alocat testului a expirat.'
-                        : 'Ai acumulat numărul maxim de greșeli permise.'}
+                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii.' : 'Ai acumulat numărul maxim de greșeli permise.')}
                 </p>
               </div>
 
+              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Greșeli', value: `${greseli}/3`, red: !admis },
@@ -299,16 +267,19 @@ function TestBLSContent() {
       <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px' }}>
         <div className="test-card" style={{ width: '100%', maxWidth: 500, ...cardStyle }}>
 
+          {/* Accent top */}
           <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
           <div style={{ padding: '28px 28px 24px' }}>
 
+            {/* Header timp + greseli */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 24 }}>
               <div>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Timp Rămas</p>
                 <p style={{
                   fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em',
                   color: timpRamas < 60 ? '#C0392B' : '#F0EAE8',
+                  animation: timpRamas < 60 ? 'pulse 1s infinite' : 'none',
                 }}>
                   {formatTimp(timpRamas)}
                 </p>
@@ -319,12 +290,14 @@ function TestBLSContent() {
               </div>
             </div>
 
+            {/* Întrebare */}
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>
                 {intrebareCurenta.intrebare}
               </p>
             </div>
 
+            {/* Opțiuni */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {intrebareCurenta.optiuni.map((optiune, i) => {
                 const isActive = optiuneSelectata === optiune;
@@ -364,6 +337,7 @@ function TestBLSContent() {
               })}
             </div>
 
+            {/* Progress + buton */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ width: '100%', height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', borderRadius: 999, transition: 'width 0.5s ease' }} />
