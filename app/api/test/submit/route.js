@@ -61,16 +61,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Cod invalid sau testul nu a fost început corect.' }, { status: 400 });
     }
 
+    // Marcăm codul ca folosit imediat ce primim un rezultat
     if (!codeDoc.used) {
       codeDoc.used = true;
       await codeDoc.save();
     }
 
     const pragGreseli = codeDoc.testSelectat === 'RADIO' ? 2 : 3;
+    
+    // Un test este ADMIS doar dacă nu a depășit greșelile ȘI motivul este 'finalizat'
     const admis = greseli <= pragGreseli && motiv === 'finalizat';
-
     const rezultat = admis ? 'ADMIS' : 'RESPINS';
-    const esteAnticheat = motiv === 'anticheat';
+
+    // Verificăm dacă motivul este unul de tip Anti-Cheat (Tab switch sau Refresh)
+    const esteAnticheat = motiv === 'anticheat' || motiv === 'refresh_pagina';
 
     if (!admis) {
       const cooldownPana = getCooldownDate(codeDoc.testSelectat);
@@ -99,7 +103,7 @@ export async function POST(request) {
           timpRamas,
           cooldownPana: cooldownStr,
           intrebariGresite: intrebariGresite || [],
-          esteAnticheat,
+          esteAnticheat, // Va fi true dacă motivul este 'anticheat' sau 'refresh_pagina'
         }),
       ]);
 
