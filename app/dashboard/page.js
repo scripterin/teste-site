@@ -49,12 +49,10 @@ export default function Dashboard() {
   const [loadingValidate, setLoadingValidate] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
-  const [dashVisible, setDashVisible] = useState(regulamentAccepted);
 
   const handleAcceptRegulament = () => {
     localStorage.setItem('reg_accepted', 'true');
     setRegulamentAccepted(true);
-    setTimeout(() => setDashVisible(true), 50);
   };
 
   useEffect(() => {
@@ -74,8 +72,11 @@ export default function Dashboard() {
       const data = await res.json();
       if (!res.ok) notify('error', data.error || 'Eroare la generare.');
       else notify('success', 'Cod trimis pe Discord');
-    } catch { notify('error', 'Eroare de conexiune la server.'); }
-    finally { setLoadingGenerate(false); }
+    } catch {
+      notify('error', 'Eroare de conexiune la server.');
+    } finally {
+      setLoadingGenerate(false);
+    }
   };
 
   const handleValidateCode = useCallback(async () => {
@@ -89,10 +90,19 @@ export default function Dashboard() {
         body: JSON.stringify({ cod: trimmed }),
       });
       const data = await res.json();
-      if (res.ok) { setCodeValid(true); setValidatedTest(data.testSelectat); notify('success', 'Acces Autorizat!'); }
-      else { setCodeValid(false); notify('error', 'Cod test invalid.'); }
-    } catch { setCodeValid(false); }
-    finally { setLoadingValidate(false); }
+      if (res.ok) {
+        setCodeValid(true);
+        setValidatedTest(data.testSelectat);
+        notify('success', 'Acces Autorizat!');
+      } else {
+        setCodeValid(false);
+        notify('error', 'Cod test invalid.');
+      }
+    } catch {
+      setCodeValid(false);
+    } finally {
+      setLoadingValidate(false);
+    }
   }, [code]);
 
   const handleStartTest = () => {
@@ -138,11 +148,6 @@ export default function Dashboard() {
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes cursorBlink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
         }
 
         .btn-solicita {
@@ -223,12 +228,7 @@ export default function Dashboard() {
         }
       `}</style>
 
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        animation: 'fadeUp 0.6s ease both',
-      }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', animation: 'fadeUp 0.6s ease both' }}>
         <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
         <Navbar />
 
@@ -286,7 +286,11 @@ export default function Dashboard() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <button className="btn-solicita" onClick={handleGenerateCode} disabled={loadingGenerate || !selectedTest}>
+                  <button
+                    className="btn-solicita"
+                    onClick={handleGenerateCode}
+                    disabled={loadingGenerate || !selectedTest}
+                  >
                     {loadingGenerate ? 'generare...' : '+ solicită cod'}
                   </button>
                   <button
@@ -310,6 +314,7 @@ export default function Dashboard() {
                   Departamentul Medical FPlayT
                 </p>
               </div>
+
             </div>
           </div>
         </main>
