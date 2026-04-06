@@ -150,9 +150,6 @@ export default function Dashboard() {
               <h1 style={{ fontSize: 28, fontWeight: 900, color: '#F0EAE8', letterSpacing: '-0.02em', margin: 0 }}>
                 DEP. MEDICAL <span style={{ color: '#C0392B' }}>FPLAYT</span>
               </h1>
-              <p style={{ fontSize: 13, color: '#8A7E7C', marginTop: 8, lineHeight: 1.5 }}>
-                Selectează testul pe care dorești să îl susții
-              </p>
             </header>
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
