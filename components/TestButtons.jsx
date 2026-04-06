@@ -1,6 +1,5 @@
 'use client';
 
-// ─── SVG Icons (Păstrate) ──────────────────────────────────
 const IconRadio = ({ color = 'currentColor' }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <rect x="6" y="8" width="12" height="13" rx="2" />
@@ -40,7 +39,6 @@ export default function TestButtons({ selected, onSelect }) {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', width: '100%', maxWidth: '500px' }}>
       {TESTS.map((test) => {
         const isSelected = selected === test.id;
-        
         return (
           <button
             key={test.id}
@@ -52,17 +50,19 @@ export default function TestButtons({ selected, onSelect }) {
               gap: '10px',
               padding: '12px 16px',
               borderRadius: '999px',
-              backgroundColor: '#231E1C',
-              border: `1px solid ${isSelected ? '#C0392B' : '#2E2724'}`,
-              color: isSelected ? '#C0392B' : '#8A7E7C',
+              backgroundColor: isSelected ? 'rgba(192,57,43,0.12)' : 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: `1px solid ${isSelected ? 'rgba(192,57,43,0.6)' : 'rgba(255,255,255,0.07)'}`,
+              color: isSelected ? '#C0392B' : 'rgba(255,255,255,0.35)',
               fontSize: '11px',
-              // MODIFICARE: Fontul rămâne la 600 indiferent de selecție
-              fontWeight: '600', 
+              fontWeight: '600',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: "'DM Mono', monospace",
+              boxShadow: isSelected ? '0 0 16px rgba(192,57,43,0.15)' : 'none',
             }}
           >
             <div
@@ -70,15 +70,13 @@ export default function TestButtons({ selected, onSelect }) {
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                backgroundColor: isSelected ? '#C0392B' : 'rgba(138,126,124,0.2)',
+                backgroundColor: isSelected ? '#C0392B' : 'rgba(255,255,255,0.1)',
                 flexShrink: 0,
-                boxShadow: isSelected ? '0 0 10px #C0392B' : 'none',
-                transition: 'all 0.2s ease'
+                boxShadow: isSelected ? '0 0 8px #C0392B' : 'none',
+                transition: 'all 0.2s ease',
               }}
             />
-            
-            <test.Icon color={isSelected ? '#C0392B' : '#8A7E7C'} />
-            
+            <test.Icon color={isSelected ? '#C0392B' : 'rgba(255,255,255,0.3)'} />
             <span>{test.label}</span>
           </button>
         );
