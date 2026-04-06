@@ -15,7 +15,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ro">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased`} style={{
+        backgroundImage: 'url(/image.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+      }}>
         <Providers>{children}</Providers>
       </body>
     </html>
