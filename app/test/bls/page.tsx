@@ -36,6 +36,15 @@ function TestBLSContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
+  const terminaTest = useCallback((motiv: string) => {
+    if (stareRef.current !== 'activ') return;
+    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
+    motivRef.current = motiv;
+    stareRef.current = admis ? 'promovat' : 'picat';
+    setMotivFinal(motiv);
+    setStare(admis ? 'promovat' : 'picat');
+  }, []);
+
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
     try {
@@ -60,14 +69,19 @@ function TestBLSContent() {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [terminaTest]);
 
-  // ANTI-REFRESH: Detecție Refresh Pagina / Închidere Tab
+  // ANTI-REFRESH: Detecție Refresh Pagina / Închidere Tab + OPRIRE TEST
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (stareRef.current !== 'activ') return;
 
-      // Pregătim datele pentru trimitere asincronă garantată
+      // 1. OPRIM TESTUL INSTANTANEU ÎN UI
+      // Schimbăm starea imediat, astfel încât dacă utilizatorul apasă "Anulează" 
+      // să rămână pe pagina de RESPINS, nu la întrebări.
+      terminaTest('refresh_pagina');
+
+      // 2. TRIMITEM DATELE LA SERVER (Background)
       const payload = JSON.stringify({
         cod,
         greseli: greseliRef.current,
@@ -75,18 +89,16 @@ function TestBLSContent() {
         intrebariGresite: intrebariGresiteRef.current,
         motiv: 'refresh_pagina',
       });
-
-      // sendBeacon este metoda sigură pentru a trimite date când pagina se închide
       navigator.sendBeacon('/api/test/submit', payload);
 
-      // Afișează dialogul standard de confirmare al browserului
+      // 3. DECLANȘĂM DIALOGUL DE BROWSER
       e.preventDefault();
       e.returnValue = '';
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [cod]);
+  }, [cod, terminaTest]);
 
   // Timer logic
   useEffect(() => {
@@ -100,16 +112,7 @@ function TestBLSContent() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare]);
-
-  const terminaTest = useCallback((motiv: string) => {
-    if (stareRef.current !== 'activ') return;
-    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
-    motivRef.current = motiv;
-    stareRef.current = admis ? 'promovat' : 'picat';
-    setMotivFinal(motiv);
-    setStare(admis ? 'promovat' : 'picat');
-  }, []);
+  }, [stare, terminaTest]);
 
   const handleConfirm = async () => {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
@@ -163,6 +166,9 @@ function TestBLSContent() {
   useEffect(() => {
     if ((stare === 'picat' || stare === 'promovat') && !submitting) {
       if (!cod) return;
+      // Dacă motivul a fost refresh, datele au plecat deja prin beacon
+      if (motivRef.current === 'refresh_pagina') return;
+
       setSubmitting(true);
       fetch('/api/test/submit', {
         method: 'POST',
