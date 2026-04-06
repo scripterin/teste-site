@@ -20,7 +20,7 @@ function TestBLSContent() {
 
   const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
   const [totalIntrebari, setTotalIntrebari] = useState(0);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // Doar pentru prima încărcare
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [indexCurent, setIndexCurent] = useState(0);
   const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
@@ -36,10 +36,8 @@ function TestBLSContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // Funcția de încărcare modificată să NU mai dea setISLoading(true) la fiecare apel
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
-    
     try {
       const res = await fetch(`/api/test/bls/question?index=${index}&cod=${cod ?? ''}`);
       if (!res.ok) throw new Error('Eroare server');
@@ -53,12 +51,8 @@ function TestBLSContent() {
     }
   }, [cod]);
 
-  // Prima încărcare
-  useEffect(() => { 
-    incarcaIntrebare(0, true); 
-  }, [incarcaIntrebare]);
+  useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
-  // Anticheat
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
@@ -67,16 +61,12 @@ function TestBLSContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  // Timer-ul curge indiferent de încărcarea întrebărilor (am scos isLoading din dependențe)
   useEffect(() => {
     if (stare !== 'activ') return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
-      if (timpRamasRef.current <= 0) { 
-        clearInterval(interval); 
-        terminaTest('timp_expirat'); 
-      }
+      if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
     }, 1000);
     return () => clearInterval(interval);
   }, [stare]);
@@ -114,19 +104,15 @@ function TestBLSContent() {
       intrebariGresiteRef.current.push({
         intrebare: intrebareCurenta.intrebare,
         raspunsdat: optiuneSelectata,
-        raspunsCorect: raspunsCorect,
+        raspunsCorect,
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
-      if (greseliRef.current > MAX_GRESELI) { 
-        setTimeout(() => terminaTest('greseli_maxime'), 600); 
-        return; 
-      }
+      if (greseliRef.current > MAX_GRESELI) { setTimeout(() => terminaTest('greseli_maxime'), 600); return; }
     } else {
       setFeedback('corect');
     }
 
-    // Trecerea la următoarea întrebare fără "loading screen"
     setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
@@ -164,13 +150,12 @@ function TestBLSContent() {
     return `${m}:${s}`;
   };
 
-  // Folosim isInitialLoading doar la prima intrare pe pagină
   if (isInitialLoading || !intrebareCurenta) {
     return (
       <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-4">
-           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#C0392B]"></div>
-           <p className="font-bold uppercase tracking-widest text-sm">Se încarcă testul...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#C0392B]"></div>
+          <p className="font-bold uppercase tracking-widest text-sm">Se încarcă testul...</p>
         </div>
       </main>
     );
@@ -183,19 +168,34 @@ function TestBLSContent() {
         <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl overflow-hidden relative">
           <div className={`absolute top-0 left-0 right-0 h-[2px] ${admis ? 'bg-green-500' : 'bg-[#C0392B]'}`} />
           <div className="p-8 text-center space-y-6">
-            <h2 className="text-3xl font-black text-[#F0EAE8]">{admis ? 'ADMIS' : 'RESPINS'}</h2>
-            <p className="text-[#8A7E7C] text-sm">{admis ? 'Felicitări!' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina.' : 'Test eșuat.')}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
-                <p className="text-[10px] uppercase font-bold text-[#8A7E7C]">Greșeli</p>
-                <p className={`text-lg font-black ${admis ? 'text-white' : 'text-red-500'}`}>{greseli}/3</p>
+            <div className="flex justify-center">
+              {admis ? (
+                <div className="w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-[#C0392B]/10 border border-[#C0392B]/20 rounded-full flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </div>
+              )}
+            </div>
+            <h2 className="text-3xl font-black text-[#F0EAE8] tracking-tight">{admis ? 'ADMIS' : 'RESPINS'}</h2>
+            <p className="text-[#8A7E7C] text-sm leading-relaxed">
+              {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii în timpul examinării.' : 'Ai acumulat numărul maxim de greșeli permise.')}
+            </p>
+            <div className="grid grid-cols-2 gap-3 py-2">
+              <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724] text-center">
+                <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Greșeli</p>
+                <p className={`text-lg font-black ${admis ? 'text-[#F0EAE8]' : 'text-[#C0392B]'}`}>{greseli}/3</p>
               </div>
-              <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
-                <p className="text-[10px] uppercase font-bold text-[#8A7E7C]">Timp</p>
-                <p className="text-lg font-black text-white">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
+              <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724] text-center">
+                <p className="text-[10px] uppercase font-bold text-[#8A7E7C] mb-1">Timp</p>
+                <p className="text-lg font-black text-[#F0EAE8]">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
               </div>
             </div>
-            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase">Înapoi la Dashboard</button>
+            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-lg font-bold uppercase tracking-widest transition-all active:scale-95">
+              Înapoi la Dashboard
+            </button>
           </div>
         </div>
       </main>
@@ -203,35 +203,89 @@ function TestBLSContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative">
+    <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(192,57,43,0.08)_0%,rgba(15,13,13,0)_70%)] pointer-events-none" />
+
       <div className="flex-grow flex items-center justify-center p-6 pt-20">
-        <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl p-8 space-y-6">
-          <div className="flex justify-between border-b border-[#2E2724] pb-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
-              <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
+        <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#C0392B]" />
+
+          <div className="p-8 space-y-6">
+            {/* Header timp + greseli */}
+            <div className="flex justify-between items-center pb-4 border-b border-[#2E2724]">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Timp Rămas</p>
+                <div className={`text-lg font-black tabular-nums ${timpRamas < 60 ? 'text-[#C0392B] animate-pulse' : 'text-[#F0EAE8]'}`}>
+                  {formatTimp(timpRamas)}
+                </div>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Răspunsuri Greșite</p>
+                <div className="text-lg font-black text-[#C0392B]">{greseli}/3</div>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
-              <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
+
+            {/* Întrebare */}
+            <header className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">
+                EXAMINARE ÎN CURS · GRILA #{indexCurent + 1}
+              </p>
+              <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">
+                {intrebareCurenta.intrebare}
+              </h2>
+            </header>
+
+            {/* Opțiuni cu litere A B C D */}
+            <section className="space-y-3">
+              {intrebareCurenta.optiuni.map((optiune, i) => {
+                const isActive = optiuneSelectata === optiune;
+                const litera = String.fromCharCode(65 + i);
+                return (
+                  <button
+                    key={i}
+                    disabled={!!feedback}
+                    onClick={() => setOptiuneSelectata(optiune)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all text-left group
+                      ${isActive
+                        ? 'bg-[#C0392B] border-[#C0392B] shadow-lg shadow-[#C0392B]/10'
+                        : 'bg-[#231E1C] border-[#2E2724] hover:border-[#C0392B] hover:bg-[#C0392B]/5'
+                      }`}
+                  >
+                    <span className={`flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-xs font-bold transition-colors
+                      ${isActive
+                        ? 'bg-[#F0EAE8]/10 border border-[#F0EAE8]/20 text-[#F0EAE8]'
+                        : 'bg-[#1A1614] border border-[#2E2724] text-[#8A7E7C] group-hover:border-[#C0392B] group-hover:text-[#C0392B]'
+                      }`}>
+                      {litera}
+                    </span>
+                    <span className="text-[13px] font-medium text-[#F0EAE8]">{optiune}</span>
+                  </button>
+                );
+              })}
+            </section>
+
+            {/* Progress + buton */}
+            <div className="space-y-4 pt-2">
+              <div className="w-full bg-[#231E1C] h-1 rounded-full overflow-hidden">
+                <div
+                  className="bg-[#C0392B] h-full transition-all duration-500 rounded-full"
+                  style={{ width: `${((indexCurent + 1) / totalIntrebari) * 100}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-[#8A7E7C] font-medium uppercase tracking-wider">
+                  Întrebarea {indexCurent + 1} din {totalIntrebari}
+                </span>
+                <button
+                  onClick={handleConfirm}
+                  disabled={!optiuneSelectata || !!feedback}
+                  className="py-3 px-8 bg-[#C0392B] disabled:opacity-30 text-[#F0EAE8] rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-[#A93226] transition-all active:scale-[0.98]"
+                >
+                  {feedback ? 'Se verifică...' : 'Următoarea →'}
+                </button>
+              </div>
             </div>
           </div>
-          <header>
-            <p className="text-[10px] font-bold text-[#C0392B] uppercase">Întrebarea {indexCurent + 1} / {totalIntrebari}</p>
-            <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta.intrebare}</h2>
-          </header>
-          <section className="space-y-3">
-            {intrebareCurenta.optiuni.map((optiune, i) => (
-              <button key={i} disabled={!!feedback} onClick={() => setOptiuneSelectata(optiune)}
-                className={`w-full p-4 rounded-lg border text-left transition-all ${optiuneSelectata === optiune ? 'bg-[#C0392B] border-[#C0392B]' : 'bg-[#231E1C] border-[#2E2724]'}`}>
-                <span className="text-sm">{optiune}</span>
-              </button>
-            ))}
-          </section>
-          <button onClick={handleConfirm} disabled={!optiuneSelectata || !!feedback}
-            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase">
-            {feedback ? 'Se verifică...' : 'Confirmă'}
-          </button>
         </div>
       </div>
     </main>
