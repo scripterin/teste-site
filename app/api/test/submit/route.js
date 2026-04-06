@@ -14,8 +14,20 @@ const COOLDOWN_ZILE = {
 
 function getCooldownDate(testName) {
   const zile = COOLDOWN_ZILE[testName] || 3;
-  const dataFinala = new Date();
 
+  // Data curentă în România (nu UTC)
+  const acumRO = new Date().toLocaleDateString('ro-RO', {
+    timeZone: 'Europe/Bucharest',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  // Parsează dd.mm.yyyy
+  const [zi, luna, an] = acumRO.split('.').map(Number);
+
+  // Construiește data corectă din RO
+  const dataFinala = new Date(an, luna - 1, zi);
   dataFinala.setDate(dataFinala.getDate() + zile - 1);
   dataFinala.setHours(23, 59, 59, 999);
 
@@ -57,10 +69,9 @@ export async function POST(request) {
       await codeDoc.save();
     }
 
-    // Calcul admis (Radio are prag de 2 greșeli, restul 3)
     const pragGreseli = codeDoc.testSelectat === 'RADIO' ? 2 : 3;
     const admis = greseli <= pragGreseli && motiv === 'finalizat';
-    
+
     const rezultat = admis ? 'ADMIS' : 'RESPINS';
     const esteAnticheat = motiv === 'anticheat';
 
@@ -73,7 +84,6 @@ export async function POST(request) {
         timeZone: 'Europe/Bucharest',
       });
 
-      // Trimite embeds în paralel
       const [rezPublic, rezConducere] = await Promise.allSettled([
         sendRezultatEmbed({
           username,
