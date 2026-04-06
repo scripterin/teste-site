@@ -24,9 +24,11 @@ function getCooldownDate(testName) {
 
   const [zi, luna, an] = acumRO.split('.').map(Number);
 
-  const dataFinala = new Date(an, luna - 1, zi);
-  dataFinala.setDate(dataFinala.getDate() + zile - 1);
-  dataFinala.setHours(23, 59, 59, 999);
+  // Cooldown-ul începe din ziua următoare și durează `zile` zile
+  // Ex: test pe 06.04 → cooldown 07, 08, 09 (3 zile)
+  const dataFinala = new Date(Date.UTC(an, luna - 1, zi));
+  dataFinala.setUTCDate(dataFinala.getUTCDate() + zile);
+  dataFinala.setUTCHours(23, 59, 59, 999);
 
   return dataFinala;
 }
