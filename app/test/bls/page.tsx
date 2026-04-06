@@ -35,6 +35,8 @@ function TestBLSContent() {
   const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
+  const anticheatTrimisRef = useRef(false);
+  const indexCurentRef = useRef(0);
 
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
@@ -53,13 +55,48 @@ function TestBLSContent() {
 
   useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
+  const terminaTest = useCallback(async (motiv: string) => {
+    if (stareRef.current !== 'activ') return;
+    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
+    motivRef.current = motiv;
+    stareRef.current = admis ? 'promovat' : 'picat';
+    setMotivFinal(motiv);
+    setStare(admis ? 'promovat' : 'picat');
+
+    if (motiv === 'anticheat' && !anticheatTrimisRef.current) {
+      anticheatTrimisRef.current = true;
+      try {
+        const { default: html2canvas } = await import('html2canvas');
+        const canvas = await html2canvas(document.body, { useCORS: true, scale: 1 });
+        const image = canvas.toDataURL('image/png');
+        const now = new Date().toLocaleTimeString('ro-RO', {
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+          timeZone: 'Europe/Bucharest',
+        });
+        await fetch('/api/test/anticheat-screenshot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cod,
+            image,
+            timestamp: now,
+            intrebareIndex: indexCurentRef.current + 1,
+            timpRamas: timpRamasRef.current,
+          }),
+        });
+      } catch (e) {
+        console.error('Eroare screenshot anticheat:', e);
+      }
+    }
+  }, [cod]);
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [terminaTest]);
 
   useEffect(() => {
     if (stare !== 'activ') return;
@@ -69,16 +106,7 @@ function TestBLSContent() {
       if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare]);
-
-  const terminaTest = useCallback((motiv: string) => {
-    if (stareRef.current !== 'activ') return;
-    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
-    motivRef.current = motiv;
-    stareRef.current = admis ? 'promovat' : 'picat';
-    setMotivFinal(motiv);
-    setStare(admis ? 'promovat' : 'picat');
-  }, []);
+  }, [stare, terminaTest]);
 
   const handleConfirm = async () => {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
@@ -120,6 +148,7 @@ function TestBLSContent() {
         terminaTest('finalizat');
       } else {
         setIndexCurent(urmatorulIndex);
+        indexCurentRef.current = urmatorulIndex;
         await incarcaIntrebare(urmatorulIndex);
       }
     }, 600);
