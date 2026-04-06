@@ -40,7 +40,8 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { cod, greseli, timpRamas, intrebariGresite, motiv } = body;
+    // AM ADĂUGAT "image" AICI (vine de la frontend)
+    const { cod, greseli, timpRamas, intrebariGresite, motiv, image } = body;
 
     if (!cod) {
       return NextResponse.json({ error: 'Codul lipsește din request.' }, { status: 400 });
@@ -100,6 +101,8 @@ export async function POST(request) {
           cooldownPana: cooldownStr,
           intrebariGresite: intrebariGresite || [],
           esteAnticheat,
+          motiv,   // trimitem motivul (anticheat/refresh/etc)
+          image,   // TRIMITEM IMAGINEA CĂTRE DISCORDBOT
         }),
       ]);
 
@@ -133,6 +136,7 @@ export async function POST(request) {
         cooldownPana: null,
         intrebariGresite: intrebariGresite || [],
         esteAnticheat: false,
+        image: null, // Nu trimitem imagine dacă e admis (opțional)
       }),
     ]);
 
