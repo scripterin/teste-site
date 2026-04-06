@@ -34,12 +34,7 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [regulamentAccepted, setRegulamentAccepted] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('reg_accepted') === 'true';
-    }
-    return false;
-  });
+  const [regulamentAccepted, setRegulamentAccepted] = useState(false);
 
   const [selectedTest, setSelectedTest] = useState(null);
   const [code, setCode] = useState('');
@@ -51,7 +46,6 @@ export default function Dashboard() {
   const [inputFocused, setInputFocused] = useState(false);
 
   const handleAcceptRegulament = () => {
-    localStorage.setItem('reg_accepted', 'true');
     setRegulamentAccepted(true);
   };
 
