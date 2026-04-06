@@ -100,9 +100,20 @@ export default function RegulamentScreen({ onAccept }) {
           vertical-align: text-bottom;
           animation: cursorBlink 0.8s step-end infinite;
         }
+        
         @keyframes cursorBlink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
+        }
+
+        .alert-pulse {
+          animation: pulseRed 2s infinite;
+        }
+
+        @keyframes pulseRed {
+          0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(192, 57, 43, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
         }
 
         .accept-btn {
@@ -153,11 +164,56 @@ export default function RegulamentScreen({ onAccept }) {
           <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
           <div style={{ padding: '36px 32px' }}>
+            
+            {/* --- SECTIUNEA NOUA DE AVERTIZARE --- */}
+            <div className="alert-pulse" style={{
+              background: 'rgba(192, 57, 43, 0.1)',
+              border: '1px solid rgba(192, 57, 43, 0.3)',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '24px'
+            }}>
+              <div style={{
+                fontSize: '20px',
+                color: '#C0392B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                ⚠️
+              </div>
+              <div>
+                <p style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  color: '#C0392B',
+                  margin: 0,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase'
+                }}>
+                  Atenție Protocol Securitate
+                </p>
+                <p style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: '11px',
+                  color: 'rgba(240,234,232,0.9)',
+                  margin: '2px 0 0 0',
+                  lineHeight: '1.2'
+                }}>
+                  NU schimbați fereastra sau apăsați <span style={{ color: '#C0392B', fontWeight: 'bold' }}>ALT+TAB</span> pe durata testului.
+                </p>
+              </div>
+            </div>
+            {/* --- SFARSIT SECTIUNE AVERTIZARE --- */}
+
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
               Departamentul Medical FPlayT
             </p>
 
-            {/* Titlu pe un singur rând */}
             <h1 style={{
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 46,
@@ -172,12 +228,11 @@ export default function RegulamentScreen({ onAccept }) {
 
             <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent)', marginBottom: 24 }} />
 
-            {/* Scroll fără bară vizibilă */}
             <div
               className="reg-scroll"
               ref={scrollRef}
               style={{
-                maxHeight: 300,
+                maxHeight: 260, // Am micsorat putin pentru a face loc avertizarii
                 overflowY: 'auto',
                 scrollbarWidth: 'none',
                 paddingRight: 0,
