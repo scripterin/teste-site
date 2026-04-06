@@ -219,7 +219,7 @@ export default function Dashboard() {
                 {/* Header */}
                 <header>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
-                    Sistem Examinare
+                    Site teste
                   </p>
                   <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 46, letterSpacing: '0.04em', color: '#F0EAE8', lineHeight: 0.95, margin: 0 }}>
                     DEP.<br /><span style={{ color: '#C0392B' }}>MEDICAL</span>
