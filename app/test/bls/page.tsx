@@ -220,7 +220,7 @@ function TestBLSContent() {
                 </div>
               </div>
               <div className="text-right space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Răspunsuri Greșite</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8A7E7C]">Greșeli</p>
                 <div className="text-lg font-black text-[#C0392B]">{greseli}/3</div>
               </div>
             </div>
