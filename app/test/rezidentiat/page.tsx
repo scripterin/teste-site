@@ -20,7 +20,7 @@ function TestRezidentiatContent() {
 
   const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
   const [totalIntrebari, setTotalIntrebari] = useState(0);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // Doar pentru prima încărcare
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [indexCurent, setIndexCurent] = useState(0);
   const [optiuneSelectata, setOptiuneSelectata] = useState<string | null>(null);
   const [greseli, setGreseli] = useState(0);
@@ -36,10 +36,8 @@ function TestRezidentiatContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // Funcția de încărcare modificată să NU mai dea setISLoading(true) la fiecare apel
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
-    
     try {
       const res = await fetch(`/api/test/rezidentiat/question?index=${index}&cod=${cod ?? ''}`);
       if (!res.ok) throw new Error('Eroare server');
@@ -53,12 +51,8 @@ function TestRezidentiatContent() {
     }
   }, [cod]);
 
-  // Prima încărcare
-  useEffect(() => { 
-    incarcaIntrebare(0, true); 
-  }, [incarcaIntrebare]);
+  useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
-  // Anticheat
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
@@ -67,16 +61,12 @@ function TestRezidentiatContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
-  // Timer-ul curge indiferent de încărcarea întrebărilor (am scos isLoading din dependențe)
   useEffect(() => {
     if (stare !== 'activ') return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
-      if (timpRamasRef.current <= 0) { 
-        clearInterval(interval); 
-        terminaTest('timp_expirat'); 
-      }
+      if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
     }, 1000);
     return () => clearInterval(interval);
   }, [stare]);
@@ -92,7 +82,6 @@ function TestRezidentiatContent() {
 
   const handleConfirm = async () => {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
-
     let corect = false;
     let raspunsCorect = '';
     try {
@@ -114,19 +103,15 @@ function TestRezidentiatContent() {
       intrebariGresiteRef.current.push({
         intrebare: intrebareCurenta.intrebare,
         raspunsdat: optiuneSelectata,
-        raspunsCorect: raspunsCorect,
+        raspunsCorect,
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
-      if (greseliRef.current > MAX_GRESELI) { 
-        setTimeout(() => terminaTest('greseli_maxime'), 600); 
-        return; 
-      }
+      if (greseliRef.current > MAX_GRESELI) { setTimeout(() => terminaTest('greseli_maxime'), 600); return; }
     } else {
       setFeedback('corect');
     }
 
-    // Trecerea la următoarea întrebare fără "loading screen"
     setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
@@ -164,13 +149,30 @@ function TestRezidentiatContent() {
     return `${m}:${s}`;
   };
 
-  // Folosim isInitialLoading doar la prima intrare pe pagină
+  const cardStyle = {
+    background: 'rgba(18,14,12,0.72)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 20,
+    boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+    overflow: 'hidden',
+  };
+
   if (isInitialLoading || !intrebareCurenta) {
     return (
-      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center text-white">
-        <div className="flex flex-col items-center gap-4">
-           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#C0392B]"></div>
-           <p className="font-bold uppercase tracking-widest text-sm">Se încarcă testul...</p>
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            border: '2px solid rgba(192,57,43,0.2)',
+            borderTop: '2px solid #C0392B',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+            Se încarcă...
+          </p>
         </div>
       </main>
     );
@@ -179,68 +181,199 @@ function TestRezidentiatContent() {
   if (stare === 'picat' || stare === 'promovat') {
     const admis = stare === 'promovat';
     return (
-      <main className="min-h-screen bg-[#0F0D0D] flex items-center justify-center p-6">
-        <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl overflow-hidden relative">
-          <div className={`absolute top-0 left-0 right-0 h-[2px] ${admis ? 'bg-green-500' : 'bg-[#C0392B]'}`} />
-          <div className="p-8 text-center space-y-6">
-            <h2 className="text-3xl font-black text-[#F0EAE8]">{admis ? 'ADMIS' : 'RESPINS'}</h2>
-            <p className="text-[#8A7E7C] text-sm">{admis ? 'Felicitări!' : (motivFinal === 'anticheat' ? 'Ai părăsit pagina.' : 'Test eșuat.')}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
-                <p className="text-[10px] uppercase font-bold text-[#8A7E7C]">Greșeli</p>
-                <p className={`text-lg font-black ${admis ? 'text-white' : 'text-red-500'}`}>{greseli}/3</p>
+      <>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');`}</style>
+        <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ width: '100%', maxWidth: 440, ...cardStyle }}>
+            <div style={{ height: 2, background: admis ? 'linear-gradient(to right, transparent, #22c55e, transparent)' : 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
+            <div style={{ padding: '40px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+              {/* Icon */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{
+                  width: 72, height: 72, borderRadius: '50%',
+                  background: admis ? 'rgba(34,197,94,0.1)' : 'rgba(192,57,43,0.1)',
+                  border: `1px solid ${admis ? 'rgba(34,197,94,0.2)' : 'rgba(192,57,43,0.2)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {admis ? (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  ) : (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  )}
+                </div>
               </div>
-              <div className="bg-[#231E1C] p-3 rounded-lg border border-[#2E2724]">
-                <p className="text-[10px] uppercase font-bold text-[#8A7E7C]">Timp</p>
-                <p className="text-lg font-black text-white">{formatTimp(TIMP_TOTAL - timpRamas)}</p>
+
+              <div>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, letterSpacing: '0.06em', color: '#F0EAE8', margin: 0 }}>
+                  {admis ? 'ADMIS' : 'RESPINS'}
+                </h2>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
+                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii.' : 'Ai acumulat numărul maxim de greșeli permise.')}
+                </p>
               </div>
+
+              {/* Stats */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[
+                  { label: 'Greșeli', value: `${greseli}/3`, red: !admis },
+                  { label: 'Timp', value: formatTimp(TIMP_TOTAL - timpRamas), red: false },
+                ].map((stat, i) => (
+                  <div key={i} style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: 12, padding: '14px 0',
+                  }}>
+                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 6 }}>{stat.label}</p>
+                    <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em', color: stat.red ? '#C0392B' : '#F0EAE8' }}>{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => router.push('/dashboard')}
+                style={{
+                  width: '100%', padding: '15px',
+                  background: '#C0392B', border: 'none', borderRadius: 12,
+                  fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
+                  letterSpacing: '0.15em', textTransform: 'uppercase', color: '#fff',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: '0 4px 20px rgba(192,57,43,0.35)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#A93226')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#C0392B')}
+              >
+                Înapoi la Dashboard
+              </button>
             </div>
-            <button onClick={() => router.push('/dashboard')} className="w-full py-4 bg-[#C0392B] text-white rounded-lg font-bold uppercase">Înapoi la Dashboard</button>
           </div>
-        </div>
-      </main>
+        </main>
+      </>
     );
   }
 
+  const progress = ((indexCurent + 1) / totalIntrebari) * 100;
+
   return (
-    <main className="min-h-screen bg-[#0F0D0D] text-[#e8e1e0] flex flex-col relative">
-      <div className="flex-grow flex items-center justify-center p-6 pt-20">
-        <div className="w-full max-w-[480px] bg-[#1A1614] rounded-xl border border-[#2E2724] shadow-2xl p-8 space-y-6">
-          <div className="flex justify-between border-b border-[#2E2724] pb-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Timp Rămas</p>
-              <p className="text-lg font-black">{formatTimp(timpRamas)}</p>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .test-card { animation: fadeIn 0.3s ease both; }
+        .opt-btn { transition: all 0.15s ease; }
+        .opt-btn:hover:not(:disabled) { border-color: rgba(192,57,43,0.5) !important; background: rgba(192,57,43,0.06) !important; }
+      `}</style>
+
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px' }}>
+        <div className="test-card" style={{ width: '100%', maxWidth: 500, ...cardStyle }}>
+
+          {/* Accent top */}
+          <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
+
+          <div style={{ padding: '28px 28px 24px' }}>
+
+            {/* Header timp + greseli */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 24 }}>
+              <div>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Timp Rămas</p>
+                <p style={{
+                  fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em',
+                  color: timpRamas < 60 ? '#C0392B' : '#F0EAE8',
+                  animation: timpRamas < 60 ? 'pulse 1s infinite' : 'none',
+                }}>
+                  {formatTimp(timpRamas)}
+                </p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Greșeli</p>
+                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em', color: '#C0392B' }}>{greseli}/3</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase text-[#8A7E7C]">Greșeli</p>
-              <p className="text-lg font-black text-[#C0392B]">{greseli}/3</p>
+
+            {/* Întrebare */}
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>
+                {intrebareCurenta.intrebare}
+              </p>
+            </div>
+
+            {/* Opțiuni */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+              {intrebareCurenta.optiuni.map((optiune, i) => {
+                const isActive = optiuneSelectata === optiune;
+                const litera = String.fromCharCode(65 + i);
+                return (
+                  <button
+                    key={i}
+                    className="opt-btn"
+                    disabled={!!feedback}
+                    onClick={() => setOptiuneSelectata(optiune)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '12px 14px', borderRadius: 12, textAlign: 'left',
+                      background: isActive ? 'rgba(192,57,43,0.15)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${isActive ? '#C0392B' : 'rgba(255,255,255,0.07)'}`,
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      boxShadow: isActive ? '0 0 20px rgba(192,57,43,0.15)' : 'none',
+                      cursor: feedback ? 'default' : 'pointer',
+                    }}
+                  >
+                    <span style={{
+                      flexShrink: 0, width: 28, height: 28, borderRadius: 8,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
+                      background: isActive ? 'rgba(192,57,43,0.2)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${isActive ? 'rgba(192,57,43,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                      color: isActive ? '#C0392B' : 'rgba(255,255,255,0.3)',
+                    }}>
+                      {litera}
+                    </span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 400, color: isActive ? '#F0EAE8' : 'rgba(255,255,255,0.7)' }}>
+                      {optiune}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Progress + buton */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ width: '100%', height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', borderRadius: 999, transition: 'width 0.5s ease' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' }}>
+                  {indexCurent + 1} / {totalIntrebari}
+                </span>
+                <button
+                  onClick={handleConfirm}
+                  disabled={!optiuneSelectata || !!feedback}
+                  style={{
+                    padding: '10px 24px', borderRadius: 10, border: 'none',
+                    fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 500,
+                    letterSpacing: '0.15em', textTransform: 'uppercase',
+                    background: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.05)' : '#C0392B',
+                    color: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.2)' : '#fff',
+                    cursor: (!optiuneSelectata || !!feedback) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                    boxShadow: (!optiuneSelectata || !!feedback) ? 'none' : '0 4px 16px rgba(192,57,43,0.3)',
+                  }}
+                >
+                  {feedback ? 'verificare...' : 'Următoarea →'}
+                </button>
+              </div>
             </div>
           </div>
-          <header>
-            <p className="text-[10px] font-bold text-[#C0392B] uppercase">Întrebarea {indexCurent + 1} / {totalIntrebari}</p>
-            <h2 className="text-xl font-bold text-[#F0EAE8] mt-2">{intrebareCurenta.intrebare}</h2>
-          </header>
-          <section className="space-y-3">
-            {intrebareCurenta.optiuni.map((optiune, i) => (
-              <button key={i} disabled={!!feedback} onClick={() => setOptiuneSelectata(optiune)}
-                className={`w-full p-4 rounded-lg border text-left transition-all ${optiuneSelectata === optiune ? 'bg-[#C0392B] border-[#C0392B]' : 'bg-[#231E1C] border-[#2E2724]'}`}>
-                <span className="text-sm">{optiune}</span>
-              </button>
-            ))}
-          </section>
-          <button onClick={handleConfirm} disabled={!optiuneSelectata || !!feedback}
-            className="w-full py-4 bg-[#C0392B] disabled:opacity-30 text-white rounded-lg font-bold uppercase">
-            {feedback ? 'Se verifică...' : 'Confirmă'}
-          </button>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
 export default function TestRezidentiat() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0F0D0D]" />}>
+    <Suspense fallback={<div style={{ minHeight: '100vh' }} />}>
       <TestRezidentiatContent />
     </Suspense>
   );
