@@ -36,7 +36,6 @@ export default function RegulamentScreen({ onAccept }) {
     let charInSection = 0;
     let phase = 'title';
     let timeout;
-
     const rendered = [];
 
     function typeNext() {
@@ -44,13 +43,9 @@ export default function RegulamentScreen({ onAccept }) {
         setDone(true);
         return;
       }
-
       const art = ARTICLES[artIdx];
-
       if (phase === 'title') {
-        if (charInSection === 0) {
-          rendered.push({ title: '', text: '' });
-        }
+        if (charInSection === 0) rendered.push({ title: '', text: '' });
         if (charInSection < art.title.length) {
           rendered[rendered.length - 1].title = art.title.slice(0, charInSection + 1);
           charInSection++;
@@ -89,36 +84,26 @@ export default function RegulamentScreen({ onAccept }) {
 
   return (
     <>
-      <style jsx>{`
-        .reg-screen {
-          transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        .reg-screen.exiting {
-          opacity: 0;
-          transform: translateY(-24px);
-          pointer-events: none;
-        }
-        .reg-scroll {
-          max-height: 300px;
-          overflow-y: auto;
-          scrollbar-width: thin;
-          scrollbar-color: rgba(192,57,43,0.3) transparent;
-          padding-right: 8px;
-          margin-bottom: 24px;
-        }
-        .reg-scroll::-webkit-scrollbar { width: 3px; }
-        .reg-scroll::-webkit-scrollbar-thumb { background: rgba(192,57,43,0.3); border-radius: 4px; }
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-        .cursor {
+        .reg-scroll::-webkit-scrollbar {
+          display: none;
+        }
+
+        .cursor-blink {
           display: inline-block;
           width: 2px;
           height: 1em;
           background: #C0392B;
           margin-left: 2px;
           vertical-align: text-bottom;
-          animation: blink 0.8s step-end infinite;
+          animation: cursorBlink 0.8s step-end infinite;
         }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
 
         .accept-btn {
           width: 100%;
@@ -138,23 +123,32 @@ export default function RegulamentScreen({ onAccept }) {
         }
         .accept-btn:hover { background: #A93226; transform: translateY(-1px); }
         @keyframes fadeUp {
-          from { opacity:0; transform:translateY(8px); }
-          to   { opacity:1; transform:translateY(0); }
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
-      <div className={`reg-screen${exiting ? ' exiting' : ''}`}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '40px 24px' }}
-      >
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 24px',
+        opacity: exiting ? 0 : 1,
+        transform: exiting ? 'translateY(-24px)' : 'translateY(0)',
+        transition: 'opacity 0.6s ease, transform 0.6s ease',
+        pointerEvents: exiting ? 'none' : 'auto',
+      }}>
         <div style={{
           background: 'rgba(18,14,12,0.92)',
           backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 20,
           overflow: 'hidden',
           width: '100%',
           maxWidth: 460,
-          boxShadow: '0 32px 64px rgba(0,0,0,0.6)',
+          boxShadow: '0 32px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
         }}>
           <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
@@ -162,21 +156,56 @@ export default function RegulamentScreen({ onAccept }) {
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
               Departamentul Medical FPlayT
             </p>
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 42, letterSpacing: '0.04em', color: '#F0EAE8', lineHeight: 0.95, marginBottom: 28 }}>
-              REGULA<br /><span style={{ color: '#C0392B' }}>MENT</span>
+
+            {/* Titlu pe un singur rând */}
+            <h1 style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: 46,
+              letterSpacing: '0.04em',
+              color: '#F0EAE8',
+              lineHeight: 1,
+              marginBottom: 28,
+              whiteSpace: 'nowrap',
+            }}>
+              REGULA<span style={{ color: '#C0392B' }}>MENT</span>
             </h1>
 
             <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent)', marginBottom: 24 }} />
 
-            <div className="reg-scroll" ref={scrollRef}>
+            {/* Scroll fără bară vizibilă */}
+            <div
+              className="reg-scroll"
+              ref={scrollRef}
+              style={{
+                maxHeight: 300,
+                overflowY: 'auto',
+                scrollbarWidth: 'none',
+                paddingRight: 0,
+                marginBottom: 24,
+              }}
+            >
               {articles.map((art, i) => (
                 <div key={i} style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', color: '#C0392B', textTransform: 'uppercase', marginBottom: 6 }}>
+                  <div style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: '0.2em',
+                    color: '#C0392B',
+                    textTransform: 'uppercase',
+                    marginBottom: 6,
+                  }}>
                     {art.title}
                   </div>
-                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, lineHeight: 1.7, color: 'rgba(240,234,232,0.7)' }}>
+                  <div style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 12.5,
+                    lineHeight: 1.7,
+                    color: 'rgba(240,234,232,0.7)',
+                  }}>
                     {art.text}
-                    {i === articles.length - 1 && !done && <span className="cursor" />}
+                    {i === articles.length - 1 && !done && (
+                      <span className="cursor-blink" />
+                    )}
                   </div>
                 </div>
               ))}
@@ -189,8 +218,19 @@ export default function RegulamentScreen({ onAccept }) {
             )}
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '12px 32px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.1)', textTransform: 'uppercase' }}>
+          <div style={{
+            borderTop: '1px solid rgba(255,255,255,0.04)',
+            padding: '12px 32px',
+            background: 'rgba(0,0,0,0.2)',
+            textAlign: 'center',
+          }}>
+            <p style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 8,
+              letterSpacing: '0.25em',
+              color: 'rgba(255,255,255,0.1)',
+              textTransform: 'uppercase',
+            }}>
               Departamentul Medical FPlayT
             </p>
           </div>
