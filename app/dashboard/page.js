@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import TestButtons from '@/components/TestButtons';
+import RegulamentScreen from '@/components/RegulamentScreen';
 
 const notify = (type, text) => {
   const base = {
@@ -33,6 +34,13 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  const [regulamentAccepted, setRegulamentAccepted] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('reg_accepted') === 'true';
+    }
+    return false;
+  });
+
   const [selectedTest, setSelectedTest] = useState(null);
   const [code, setCode] = useState('');
   const [codeValid, setCodeValid] = useState(false);
@@ -41,6 +49,13 @@ export default function Dashboard() {
   const [loadingValidate, setLoadingValidate] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
+  const [dashVisible, setDashVisible] = useState(regulamentAccepted);
+
+  const handleAcceptRegulament = () => {
+    localStorage.setItem('reg_accepted', 'true');
+    setRegulamentAccepted(true);
+    setTimeout(() => setDashVisible(true), 50);
+  };
 
   useEffect(() => {
     if (code.length === 6) handleValidateCode();
@@ -103,17 +118,31 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
+  if (!regulamentAccepted) {
+    return (
+      <>
+        <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
+        <RegulamentScreen onAccept={handleAcceptRegulament} />
+      </>
+    );
+  }
+
   return (
     <>
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
         .dash-card {
-          animation: fadeUp 0.4s ease both;
+          animation: fadeUp 0.5s ease both;
         }
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
+          from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
         }
 
         .btn-solicita {
@@ -194,14 +223,18 @@ export default function Dashboard() {
         }
       `}</style>
 
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        animation: 'fadeUp 0.6s ease both',
+      }}>
         <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
         <Navbar />
 
         <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
           <div className="dash-card" style={{ width: '100%', maxWidth: 460 }}>
 
-            {/* Card principal */}
             <div style={{
               background: 'rgba(18,14,12,0.72)',
               backdropFilter: 'blur(24px)',
@@ -211,12 +244,10 @@ export default function Dashboard() {
               boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
               overflow: 'hidden',
             }}>
-              {/* Accent top */}
               <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
               <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
-                {/* Header */}
                 <header>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
                     Site teste
@@ -228,7 +259,6 @@ export default function Dashboard() {
 
                 <div className="dash-divider" />
 
-                {/* Test buttons */}
                 <div>
                   <span className="dash-label">Tip test</span>
                   <TestButtons selected={selectedTest} onSelect={setSelectedTest} />
@@ -236,7 +266,6 @@ export default function Dashboard() {
 
                 <div className="dash-divider" />
 
-                {/* Cod input */}
                 <div>
                   <span className="dash-label">Cod de acces</span>
                   <input
@@ -256,7 +285,6 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                {/* Butoane */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <button className="btn-solicita" onClick={handleGenerateCode} disabled={loadingGenerate || !selectedTest}>
                     {loadingGenerate ? 'generare...' : '+ solicită cod'}
@@ -272,7 +300,6 @@ export default function Dashboard() {
 
               </div>
 
-              {/* Footer */}
               <div style={{
                 borderTop: '1px solid rgba(255,255,255,0.04)',
                 padding: '12px 32px',
