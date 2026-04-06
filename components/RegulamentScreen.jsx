@@ -195,7 +195,7 @@ export default function RegulamentScreen({ onAccept }) {
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase'
                 }}>
-                  Atenție Protocol Securitate
+                  ATENȚIE MAXIMĂ
                 </p>
                 <p style={{
                   fontFamily: "'DM Sans', sans-serif",
