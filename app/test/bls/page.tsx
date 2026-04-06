@@ -226,10 +226,7 @@ function TestBLSContent() {
             </div>
 
             {/* Întrebare */}
-            <header className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C0392B]">
-                EXAMINARE ÎN CURS · GRILA #{indexCurent + 1}
-              </p>
+            <header>
               <h2 className="text-xl font-bold text-[#F0EAE8] leading-tight">
                 {intrebareCurenta.intrebare}
               </h2>
