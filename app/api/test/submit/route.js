@@ -15,7 +15,6 @@ const COOLDOWN_ZILE = {
 function getCooldownDate(testName) {
   const zile = COOLDOWN_ZILE[testName] || 3;
 
-  // Data curentă în România (nu UTC)
   const acumRO = new Date().toLocaleDateString('ro-RO', {
     timeZone: 'Europe/Bucharest',
     year: 'numeric',
@@ -23,10 +22,8 @@ function getCooldownDate(testName) {
     day: '2-digit',
   });
 
-  // Parsează dd.mm.yyyy
   const [zi, luna, an] = acumRO.split('.').map(Number);
 
-  // Construiește data corectă din RO
   const dataFinala = new Date(an, luna - 1, zi);
   dataFinala.setDate(dataFinala.getDate() + zile - 1);
   dataFinala.setHours(23, 59, 59, 999);
