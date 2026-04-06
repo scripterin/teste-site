@@ -2,28 +2,44 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { cod, image, timestamp, intrebareIndex, timpRamas } = await req.json();
+    const { image, timestamp, intrebareIndex, timpRamas } = await req.json();
 
+    // 1. Pregătirea imaginii (Buffer)
     const base64Data = image.replace(/^data:image\/png;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
     const formData = new FormData();
 
+    // 2. Definirea Embed-ului (Am păstrat doar ce ai cerut)
     const embed = {
-      title: '🚨 ANTICHEAT — Screenshot Dovadă',
-      color: 0xFEE75C,
+      title: '🚨 DOVADĂ FOTO — ANTICHEAT',
+      color: 0xFEE75C, // Galben pentru avertisment
       fields: [
-        { name: 'Cod', value: cod, inline: true },
-        { name: 'Ora detectării', value: timestamp, inline: true },
-        { name: 'Întrebarea', value: `${intrebareIndex}`, inline: true },
-        { name: 'Timp rămas', value: `${timpRamas}s`, inline: true },
+        { 
+          name: 'Ora detectării', 
+          value: timestamp, 
+          inline: true 
+        },
+        { 
+          name: 'Întrebarea curentă', 
+          value: `Nr. ${intrebareIndex + 1}`, // +1 pentru a fi user-friendly (1, 2, 3...)
+          inline: true 
+        },
+        { 
+          name: 'Timp rămas', 
+          value: `${timpRamas}s`, 
+          inline: true 
+        },
       ],
       image: { url: 'attachment://anticheat.png' },
-      footer: { text: 'Departamentul Medical FPlayT' },
+      footer: { text: 'Sistem Monitorizare Departamentul Medical' },
       timestamp: new Date().toISOString(),
     };
 
+    // 3. Construirea pachetului pentru Discord
     formData.append('payload_json', JSON.stringify({ embeds: [embed] }));
+    
+    // Notă: Folosim files[0] pentru compatibilitate maximă cu Discord API
     formData.append('files[0]', new Blob([buffer], { type: 'image/png' }), 'anticheat.png');
 
     const res = await fetch(process.env.DISCORD_WEBHOOK_CONDUCERE!, {

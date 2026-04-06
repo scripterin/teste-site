@@ -18,10 +18,6 @@ function TestBLSContent() {
   const searchParams = useSearchParams();
   const cod = searchParams.get('cod');
 
-  const [showRegulament, setShowRegulament] = useState(true);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
-
   const [intrebareCurenta, setIntrebareCurenta] = useState<IntrebarePrimita | null>(null);
   const [totalIntrebari, setTotalIntrebari] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -33,16 +29,12 @@ function TestBLSContent() {
   const [motivFinal, setMotivFinal] = useState('');
   const [feedback, setFeedback] = useState<'corect' | 'gresit' | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
 
   const timpRamasRef = useRef(TIMP_TOTAL);
   const greseliRef = useRef(0);
   const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
-  const anticheatTrimisRef = useRef(false);
-  const indexCurentRef = useRef(0);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
@@ -59,116 +51,34 @@ function TestBLSContent() {
     }
   }, [cod]);
 
-  useEffect(() => { 
-    if(!showRegulament) incarcaIntrebare(0, true); 
-  }, [incarcaIntrebare, showRegulament]);
-
-  const terminaTest = useCallback(async (motiv: string) => {
-    if (stareRef.current !== 'activ') return;
-    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
-    
-    motivRef.current = motiv;
-    stareRef.current = admis ? 'promovat' : 'picat';
-    setMotivFinal(motiv);
-    setStare(admis ? 'promovat' : 'picat');
-
-    // Oprire stream video la final
-    if (screenStream) {
-      screenStream.getTracks().forEach(track => track.stop());
-    }
-
-    if (motiv === 'anticheat' && !anticheatTrimisRef.current) {
-      anticheatTrimisRef.current = true;
-      try {
-        // Generăm screenshot din STREAM-ul video (nu doar HTML)
-        let image = '';
-        if (videoRef.current) {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoRef.current.videoWidth;
-            canvas.height = videoRef.current.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(videoRef.current, 0, 0);
-            image = canvas.toDataURL('image/png');
-        }
-
-        const now = new Date().toLocaleTimeString('ro-RO', {
-          hour: '2-digit', minute: '2-digit', second: '2-digit',
-          timeZone: 'Europe/Bucharest',
-        });
-
-        await fetch('/api/test/anticheat-screenshot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            cod,
-            image,
-            timestamp: now,
-            intrebareIndex: indexCurentRef.current + 1,
-            timpRamas: timpRamasRef.current,
-            detaliu: "Părăsire pagină sau schimbare tab"
-          }),
-        });
-      } catch (e) {
-        console.error('Eroare screenshot anticheat:', e);
-      }
-    }
-  }, [cod, screenStream]);
-
-  // Logica pornire test cu Screen Share
-  const pornesteTestul = async () => {
-    if (!acceptedTerms) {
-        setErrorMsg("Trebuie să accepți regulamentul.");
-        return;
-    }
-    
-    try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-            video: { displaySurface: "monitor" } as any,
-            audio: false
-        });
-
-        const settings = stream.getVideoTracks()[0].getSettings();
-        if ((settings as any).displaySurface !== 'monitor') {
-            stream.getTracks().forEach(t => t.stop());
-            setErrorMsg("EROARE: Trebuie să partajezi TOT ECRANUL (Entire Screen).");
-            return;
-        }
-
-        // Setup video element invizibil pentru screenshot-uri
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.play();
-        videoRef.current = video;
-
-        // Dacă userul închide manual share-ul de jos din browser
-        stream.getVideoTracks()[0].onended = () => {
-            terminaTest('anticheat');
-        };
-
-        setScreenStream(stream);
-        setShowRegulament(false);
-    } catch (err) {
-        setErrorMsg("Trebuie să permiți partajarea ecranului.");
-    }
-  };
+  useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && stareRef.current === 'activ' && !showRegulament) terminaTest('anticheat');
+      if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [terminaTest, showRegulament]);
+  }, []);
 
   useEffect(() => {
-    if (stare !== 'activ' || showRegulament) return;
+    if (stare !== 'activ') return;
     const interval = setInterval(() => {
       timpRamasRef.current -= 1;
       setTimpRamas(timpRamasRef.current);
       if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
     }, 1000);
     return () => clearInterval(interval);
-  }, [stare, terminaTest, showRegulament]);
+  }, [stare]);
+
+  const terminaTest = useCallback((motiv: string) => {
+    if (stareRef.current !== 'activ') return;
+    const admis = greseliRef.current <= MAX_GRESELI && motiv === 'finalizat';
+    motivRef.current = motiv;
+    stareRef.current = admis ? 'promovat' : 'picat';
+    setMotivFinal(motiv);
+    setStare(admis ? 'promovat' : 'picat');
+  }, []);
 
   const handleConfirm = async () => {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
@@ -210,7 +120,6 @@ function TestBLSContent() {
         terminaTest('finalizat');
       } else {
         setIndexCurent(urmatorulIndex);
-        indexCurentRef.current = urmatorulIndex;
         await incarcaIntrebare(urmatorulIndex);
       }
     }, 600);
@@ -250,41 +159,6 @@ function TestBLSContent() {
     overflow: 'hidden',
   };
 
-  // --- UI REGULAMENT ---
-  if (showRegulament) {
-    return (
-        <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap');`}</style>
-          <div style={{ width: '100%', maxWidth: 460, ...cardStyle }}>
-            <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
-            <div style={{ padding: '40px 32px' }}>
-                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, color: '#F0EAE8', marginBottom: 20 }}>REGULAMENT TEST</h2>
-                <ul style={{ color: 'rgba(255,255,255,0.7)', fontFamily: "'DM Sans', sans-serif", fontSize: 14, paddingLeft: 20, marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <li>Nu părăsi pagina (schimbarea tab-ului duce la <b>RESPINGERE</b>).</li>
-                    <li>Este obligatorie partajarea <b>ÎNTREGULUI ECRAN</b>.</li>
-                    <li>Sistemul monitorizează activitatea prin captură video.</li>
-                </ul>
-                
-                <label style={{ display: 'flex', gap: 10, cursor: 'pointer', marginBottom: 24 }}>
-                    <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-                    <span style={{ color: '#fff', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>Confirm că am înțeles regulile și consecințele.</span>
-                </label>
-
-                {errorMsg && <p style={{ color: '#C0392B', fontSize: 11, marginBottom: 16, fontFamily: 'monospace' }}>{errorMsg}</p>}
-
-                <button 
-                    onClick={pornesteTestul}
-                    style={{ width: '100%', padding: '16px', background: '#C0392B', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 1, fontSize: 18 }}
-                >
-                    PORNEȘTE TESTUL
-                </button>
-            </div>
-          </div>
-        </main>
-    );
-  }
-
-  // --- UI LOADING ---
   if (isInitialLoading || !intrebareCurenta) {
     return (
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -304,7 +178,6 @@ function TestBLSContent() {
     );
   }
 
-  // --- UI FINAL (ADMIS/RESPINS) ---
   if (stare === 'picat' || stare === 'promovat') {
     const admis = stare === 'promovat';
     return (
@@ -314,6 +187,8 @@ function TestBLSContent() {
           <div style={{ width: '100%', maxWidth: 440, ...cardStyle }}>
             <div style={{ height: 2, background: admis ? 'linear-gradient(to right, transparent, #22c55e, transparent)' : 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
             <div style={{ padding: '40px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+              {/* Icon */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
@@ -334,10 +209,11 @@ function TestBLSContent() {
                   {admis ? 'ADMIS' : 'RESPINS'}
                 </h2>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
-                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat o tentativă de fraudă.' : 'Ai acumulat numărul maxim de greșeli permise.')}
+                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii.' : 'Ai acumulat numărul maxim de greșeli permise.')}
                 </p>
               </div>
 
+              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Greșeli', value: `${greseli}/3`, red: !admis },
@@ -364,6 +240,8 @@ function TestBLSContent() {
                   cursor: 'pointer', transition: 'all 0.2s',
                   boxShadow: '0 4px 20px rgba(192,57,43,0.35)',
                 }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#A93226')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#C0392B')}
               >
                 Înapoi la Dashboard
               </button>
@@ -374,7 +252,6 @@ function TestBLSContent() {
     );
   }
 
-  // --- UI TEST ACTIV ---
   const progress = ((indexCurent + 1) / totalIntrebari) * 100;
 
   return (
@@ -389,14 +266,20 @@ function TestBLSContent() {
 
       <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px' }}>
         <div className="test-card" style={{ width: '100%', maxWidth: 500, ...cardStyle }}>
+
+          {/* Accent top */}
           <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
+
           <div style={{ padding: '28px 28px 24px' }}>
+
+            {/* Header timp + greseli */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 24 }}>
               <div>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Timp Rămas</p>
                 <p style={{
                   fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em',
                   color: timpRamas < 60 ? '#C0392B' : '#F0EAE8',
+                  animation: timpRamas < 60 ? 'pulse 1s infinite' : 'none',
                 }}>
                   {formatTimp(timpRamas)}
                 </p>
@@ -407,12 +290,14 @@ function TestBLSContent() {
               </div>
             </div>
 
+            {/* Întrebare */}
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>
                 {intrebareCurenta.intrebare}
               </p>
             </div>
 
+            {/* Opțiuni */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {intrebareCurenta.optiuni.map((optiune, i) => {
                 const isActive = optiuneSelectata === optiune;
@@ -428,6 +313,9 @@ function TestBLSContent() {
                       padding: '12px 14px', borderRadius: 12, textAlign: 'left',
                       background: isActive ? 'rgba(192,57,43,0.15)' : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${isActive ? '#C0392B' : 'rgba(255,255,255,0.07)'}`,
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      boxShadow: isActive ? '0 0 20px rgba(192,57,43,0.15)' : 'none',
                       cursor: feedback ? 'default' : 'pointer',
                     }}
                   >
@@ -436,27 +324,40 @@ function TestBLSContent() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500,
                       background: isActive ? 'rgba(192,57,43,0.2)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${isActive ? 'rgba(192,57,43,0.4)' : 'rgba(255,255,255,0.08)'}`,
                       color: isActive ? '#C0392B' : 'rgba(255,255,255,0.3)',
-                    }}>{litera}</span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: isActive ? '#F0EAE8' : 'rgba(255,255,255,0.7)' }}>{optiune}</span>
+                    }}>
+                      {litera}
+                    </span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 400, color: isActive ? '#F0EAE8' : 'rgba(255,255,255,0.7)' }}>
+                      {optiune}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
+            {/* Progress + buton */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ width: '100%', height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', transition: 'width 0.5s ease' }} />
+                <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', borderRadius: 999, transition: 'width 0.5s ease' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{indexCurent + 1} / {totalIntrebari}</span>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' }}>
+                  {indexCurent + 1} / {totalIntrebari}
+                </span>
                 <button
                   onClick={handleConfirm}
                   disabled={!optiuneSelectata || !!feedback}
                   style={{
                     padding: '10px 24px', borderRadius: 10, border: 'none',
+                    fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 500,
+                    letterSpacing: '0.15em', textTransform: 'uppercase',
                     background: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.05)' : '#C0392B',
-                    color: '#fff', cursor: 'pointer', fontFamily: "'DM Mono', monospace", fontSize: 10
+                    color: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.2)' : '#fff',
+                    cursor: (!optiuneSelectata || !!feedback) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                    boxShadow: (!optiuneSelectata || !!feedback) ? 'none' : '0 4px 16px rgba(192,57,43,0.3)',
                   }}
                 >
                   {feedback ? 'verificare...' : 'Următoarea →'}
