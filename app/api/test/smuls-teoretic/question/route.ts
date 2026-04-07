@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { INTREBARI_SMULS } from '@/lib/questions/smuls';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
+import connectDB from '@/lib/mongodb';
+import Code from '@/models/Code';
 
-// Shuffle determinist pe server folosind un seed bazat pe cod + id
-// Astfel shuffle-ul e consistent între request-uri dar diferit per sesiune
 function seededShuffle<T>(array: T[], seed: string): T[] {
   const arr = [...array];
-  // Hash simplu din seed
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash) + seed.charCodeAt(i);
@@ -35,11 +34,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Întrebare inexistentă' }, { status: 404 });
   }
 
-  // Amestecăm ordinea întrebărilor pe server (seed = cod sesiune)
+  if (index === 0) {
+    await connectDB();
+    const userId = (session.user as any).discordId;
+    const codeDoc = await Code.findOne({
+      cod: cod.toUpperCase(),
+      userId,
+      expiresAt: { $gt: new Date() }, 
+    });
+
+    if (!codeDoc) {
+      return NextResponse.json({ error: 'Cod invalid sau expirat.' }, { status: 403 });
+    }
+
+    if (codeDoc.used) {
+      return NextResponse.json({ error: 'Testul a fost deja început. Nu poți da refresh.' }, { status: 403 });
+    }
+
+    codeDoc.used = true;
+    await codeDoc.save();
+  }
+
   const intrebariAmestecate = seededShuffle(INTREBARI_SMULS, cod);
   const intrebare = intrebariAmestecate[index];
-
-  // Amestecăm opțiunile pe server — fără raspunsCorect în răspuns!
   const optiuniAmestecate = seededShuffle(intrebare.optiuni, cod + index);
 
   return NextResponse.json({
@@ -47,6 +64,5 @@ export async function GET(req: NextRequest) {
     total: INTREBARI_SMULS.length,
     intrebare: intrebare.intrebare,
     optiuni: optiuniAmestecate,
-    // ❌ raspunsCorect — NICIODATĂ trimis la client
   });
 }
