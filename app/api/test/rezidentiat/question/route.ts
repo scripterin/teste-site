@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { INTREBARI_REZIDENTIAT } from '@/lib/questions/rezidentiat';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import connectDB from '@/lib/mongodb';
-import Code from '@/models/Code';
 
+// Shuffle determinist pe server folosind un seed bazat pe cod + id
+// Astfel shuffle-ul e consistent între request-uri dar diferit per sesiune
 function seededShuffle<T>(array: T[], seed: string): T[] {
   const arr = [...array];
+  // Hash simplu din seed
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash) + seed.charCodeAt(i);
@@ -34,30 +35,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Întrebare inexistentă' }, { status: 404 });
   }
 
-  if (index === 0) {
-    await connectDB();
-    const anySession = session as any;
-    const userId = anySession.user?.discordId;
-    const codeDoc = await (Code as any).findOne({
-      cod: cod.toUpperCase(),
-      userId,
-      expiresAt: { $gt: new Date() },
-    });
-
-    if (!codeDoc) {
-      return NextResponse.json({ error: 'Cod invalid sau expirat.' }, { status: 403 });
-    }
-
-    if (codeDoc.used) {
-      return NextResponse.json({ error: 'Testul a fost deja început. Nu poți da refresh.' }, { status: 403 });
-    }
-
-    codeDoc.used = true;
-    await codeDoc.save();
-  }
-
+  // Amestecăm ordinea întrebărilor pe server (seed = cod sesiune)
   const intrebariAmestecate = seededShuffle(INTREBARI_REZIDENTIAT, cod);
   const intrebare = intrebariAmestecate[index];
+
+  // Amestecăm opțiunile pe server — fără raspunsCorect în răspuns!
   const optiuniAmestecate = seededShuffle(intrebare.optiuni, cod + index);
 
   return NextResponse.json({
@@ -65,5 +47,6 @@ export async function GET(req: NextRequest) {
     total: INTREBARI_REZIDENTIAT.length,
     intrebare: intrebare.intrebare,
     optiuni: optiuniAmestecate,
+    // ❌ raspunsCorect — NICIODATĂ trimis la client
   });
 }
