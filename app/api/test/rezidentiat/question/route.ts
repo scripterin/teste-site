@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     await connectDB();
     const anySession = session as any;
     const userId = anySession.user?.discordId;
-    const codeDoc = await Code.findOne({
+    const codeDoc = await (Code as any).findOne({
       cod: cod.toUpperCase(),
       userId,
       expiresAt: { $gt: new Date() },
