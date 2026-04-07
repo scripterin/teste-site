@@ -30,25 +30,36 @@ function TestBLSContent() {
   const [feedback, setFeedback] = useState<'corect' | 'gresit' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Folosim Ref-uri pentru a avea valorile la zi în evenimentele de tip 'beforeunload'
   const timpRamasRef = useRef(TIMP_TOTAL);
   const greseliRef = useRef(0);
   const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // ✅ FIX: trimite submit cu beacon la refresh/închidere tab
+  // ✅ FIX: Sincronizare stare cu Ref-uri pentru beacon
+  useEffect(() => {
+    stareRef.current = stare;
+  }, [stare]);
+
+  // ✅ FIX: Trimitere date corecte la refresh/închidere tab
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (stareRef.current === 'activ' && cod) {
-        navigator.sendBeacon('/api/test/submit', new Blob([JSON.stringify({
+        const payload = JSON.stringify({
           cod,
           greseli: greseliRef.current,
-          timpRamas: timpRamasRef.current,
+          timpRamas: timpRamasRef.current, // Trimite valoarea curentă din secundă în secundă
           intrebariGresite: intrebariGresiteRef.current,
           motiv: 'refresh',
-        })], { type: 'application/json' }));
+        });
+        
+        // Folosim Blob pentru a ne asigura că header-ul Content-Type este corect
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon('/api/test/submit', blob);
       }
     };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [cod]);
@@ -58,7 +69,6 @@ function TestBLSContent() {
     try {
       const res = await fetch(`/api/test/bls/question?index=${index}&cod=${cod ?? ''}`);
 
-      // ✅ FIX: dacă codul e deja used (refresh), arată picat direct
       if (res.status === 403) {
         stareRef.current = 'picat';
         motivRef.current = 'refresh';
@@ -79,7 +89,9 @@ function TestBLSContent() {
     }
   }, [cod]);
 
-  useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
+  useEffect(() => { 
+    incarcaIntrebare(0, true); 
+  }, [incarcaIntrebare]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -89,12 +101,17 @@ function TestBLSContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
+  // ✅ FIX: Actualizare REF în interval pentru a fi citit corect de beacon
   useEffect(() => {
     if (stare !== 'activ') return;
     const interval = setInterval(() => {
-      timpRamasRef.current -= 1;
-      setTimpRamas(timpRamasRef.current);
-      if (timpRamasRef.current <= 0) { clearInterval(interval); terminaTest('timp_expirat'); }
+      timpRamasRef.current -= 1; // Actualizăm ref-ul direct
+      setTimpRamas(timpRamasRef.current); // Apoi starea pentru UI
+      
+      if (timpRamasRef.current <= 0) { 
+        clearInterval(interval); 
+        terminaTest('timp_expirat'); 
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [stare]);
@@ -135,7 +152,10 @@ function TestBLSContent() {
       });
       greseliRef.current += 1;
       setGreseli(greseliRef.current);
-      if (greseliRef.current > MAX_GRESELI) { setTimeout(() => terminaTest('greseli_maxime'), 600); return; }
+      if (greseliRef.current > MAX_GRESELI) { 
+        setTimeout(() => terminaTest('greseli_maxime'), 600); 
+        return; 
+      }
     } else {
       setFeedback('corect');
     }
@@ -184,7 +204,7 @@ function TestBLSContent() {
     border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: 20,
     boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
-    overflow: 'hidden',
+    overflow: 'hidden' as const,
   };
 
   if (isInitialLoading) {
@@ -284,13 +304,14 @@ function TestBLSContent() {
     );
   }
 
-  const progress = ((indexCurent + 1) / totalIntrebari) * 100;
+  const progress = ((indexCurent + 1) / (totalIntrebari || 1)) * 100;
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         .test-card { animation: fadeIn 0.3s ease both; }
         .opt-btn { transition: all 0.15s ease; }
         .opt-btn:hover:not(:disabled) { border-color: rgba(192,57,43,0.5) !important; background: rgba(192,57,43,0.06) !important; }
@@ -319,12 +340,12 @@ function TestBLSContent() {
 
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>
-                {intrebareCurenta!.intrebare}
+                {intrebareCurenta?.intrebare}
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-              {intrebareCurenta!.optiuni.map((optiune, i) => {
+              {intrebareCurenta?.optiuni.map((optiune, i) => {
                 const isActive = optiuneSelectata === optiune;
                 const litera = String.fromCharCode(65 + i);
                 return (
@@ -342,6 +363,7 @@ function TestBLSContent() {
                       WebkitBackdropFilter: 'blur(8px)',
                       boxShadow: isActive ? '0 0 20px rgba(192,57,43,0.15)' : 'none',
                       cursor: feedback ? 'default' : 'pointer',
+                      width: '100%'
                     }}
                   >
                     <span style={{
@@ -397,7 +419,7 @@ function TestBLSContent() {
 
 export default function TestBLS() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh' }} />}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#120E0C' }} />}>
       <TestBLSContent />
     </Suspense>
   );
