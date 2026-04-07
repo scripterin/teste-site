@@ -36,6 +36,23 @@ function TestBLSContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
+  // 1. Verificare inițială dacă testul a fost deja folosit (previne reintrarea după refresh)
+  useEffect(() => {
+    if (!cod) return;
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/test/check?cod=${cod}`);
+        const data = await res.json();
+        if (data.used) {
+          router.push('/dashboard');
+        }
+      } catch (e) {
+        console.error("Status check failed", e);
+      }
+    };
+    checkStatus();
+  }, [cod, router]);
+
   const incarcaIntrebare = useCallback(async (index: number, isFirstLoad = false) => {
     if (isFirstLoad) setIsInitialLoading(true);
     try {
@@ -53,6 +70,7 @@ function TestBLSContent() {
 
   useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
+  // 2. Detecție Tab Switch / Minimize
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
@@ -60,6 +78,25 @@ function TestBLSContent() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
+
+  // 3. Detecție Refresh / Închidere Pagină (ANTICHEAT REFRESH)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (stareRef.current === 'activ' && cod) {
+        const payload = JSON.stringify({
+          cod,
+          greseli: greseliRef.current,
+          timpRamas: timpRamasRef.current,
+          intrebariGresite: intrebariGresiteRef.current,
+          motiv: 'refresh_pagina',
+        });
+        navigator.sendBeacon('/api/test/submit', payload);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [cod]);
 
   useEffect(() => {
     if (stare !== 'activ') return;
@@ -128,6 +165,8 @@ function TestBLSContent() {
   useEffect(() => {
     if ((stare === 'picat' || stare === 'promovat') && !submitting) {
       if (!cod) return;
+      if (motivRef.current === 'refresh_pagina') return; // Nu trimitem de două ori dacă a plecat deja prin beacon
+      
       setSubmitting(true);
       fetch('/api/test/submit', {
         method: 'POST',
@@ -188,7 +227,6 @@ function TestBLSContent() {
             <div style={{ height: 2, background: admis ? 'linear-gradient(to right, transparent, #22c55e, transparent)' : 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
             <div style={{ padding: '40px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-              {/* Icon */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
@@ -209,11 +247,13 @@ function TestBLSContent() {
                   {admis ? 'ADMIS' : 'RESPINS'}
                 </h2>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
-                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii.' : 'Ai acumulat numărul maxim de greșeli permise.')}
+                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : 
+                    (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii (Alt-Tab).' : 
+                     motivFinal === 'refresh_pagina' ? 'Anticheat: Ai dat refresh la pagină în timpul testului.' :
+                     'Ai acumulat numărul maxim de greșeli permise.')}
                 </p>
               </div>
 
-              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
                   { label: 'Greșeli', value: `${greseli}/3`, red: !admis },
@@ -240,8 +280,6 @@ function TestBLSContent() {
                   cursor: 'pointer', transition: 'all 0.2s',
                   boxShadow: '0 4px 20px rgba(192,57,43,0.35)',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#A93226')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#C0392B')}
               >
                 Înapoi la Dashboard
               </button>
@@ -262,17 +300,13 @@ function TestBLSContent() {
         .test-card { animation: fadeIn 0.3s ease both; }
         .opt-btn { transition: all 0.15s ease; }
         .opt-btn:hover:not(:disabled) { border-color: rgba(192,57,43,0.5) !important; background: rgba(192,57,43,0.06) !important; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
       `}</style>
 
       <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px' }}>
         <div className="test-card" style={{ width: '100%', maxWidth: 500, ...cardStyle }}>
-
-          {/* Accent top */}
           <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
-
           <div style={{ padding: '28px 28px 24px' }}>
-
-            {/* Header timp + greseli */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 24 }}>
               <div>
                 <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Timp Rămas</p>
@@ -290,14 +324,12 @@ function TestBLSContent() {
               </div>
             </div>
 
-            {/* Întrebare */}
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>
                 {intrebareCurenta.intrebare}
               </p>
             </div>
 
-            {/* Opțiuni */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {intrebareCurenta.optiuni.map((optiune, i) => {
                 const isActive = optiuneSelectata === optiune;
@@ -337,7 +369,6 @@ function TestBLSContent() {
               })}
             </div>
 
-            {/* Progress + buton */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ width: '100%', height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', borderRadius: 999, transition: 'width 0.5s ease' }} />
