@@ -36,11 +36,12 @@ export async function GET(req: NextRequest) {
 
   if (index === 0) {
     await connectDB();
-    const userId = (session.user as any).discordId;
+    const anySession = session as any;
+    const userId = anySession.user?.discordId;
     const codeDoc = await Code.findOne({
       cod: cod.toUpperCase(),
       userId,
-      expiresAt: { $gt: new Date() }, 
+      expiresAt: { $gt: new Date() },
     });
 
     if (!codeDoc) {
