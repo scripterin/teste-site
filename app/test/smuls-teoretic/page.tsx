@@ -36,14 +36,20 @@ function TestSMULSContent() {
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
 
-  // --- LOGICĂ NOUĂ: VERIFICARE DACA TESTUL E DEJA FOLOSIT (KICK) ---
+  const playAlertSound = () => {
+    try {
+      const sound = new Audio('/alert.mp3');
+      sound.play().catch(() => {});
+    } catch (e) {}
+  };
+
+  // --- VERIFICARE DACA TESTUL E DEJA FOLOSIT (KICK) ---
   const verificaStatusCod = useCallback(async () => {
     if (!cod) return;
     try {
       const res = await fetch(`/api/test/check?cod=${cod}`);
       const data = await res.json();
       if (data.used) {
-        // Dacă testul a fost deja marcat ca folosit (de la un refresh anterior), îl dăm afară
         router.push('/dashboard');
       }
     } catch (e) {
@@ -55,18 +61,20 @@ function TestSMULSContent() {
     verificaStatusCod();
   }, [verificaStatusCod]);
 
-  // --- LOGICĂ NOUĂ: DETECTARE REFRESH / ÎNCHIDERE (ANTICHEAT) ---
+  // --- DETECTARE REFRESH / ÎNCHIDERE (ANTICHEAT) ---
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (stareRef.current === 'activ' && cod) {
+        // Sunet la refresh/închidere (best-effort)
+        playAlertSound();
+
         const payload = JSON.stringify({
           cod,
           greseli: greseliRef.current,
           timpRamas: timpRamasRef.current,
           intrebariGresite: intrebariGresiteRef.current,
-          motiv: 'refresh_pagina', // Motivul nou cerut de tine
+          motiv: 'refresh_pagina',
         });
-        // sendBeacon garantează că datele pleacă chiar dacă pagina se închide/reîncarcă
         navigator.sendBeacon('/api/test/submit', payload);
       }
     };
@@ -92,9 +100,14 @@ function TestSMULSContent() {
 
   useEffect(() => { incarcaIntrebare(0, true); }, [incarcaIntrebare]);
 
+  // --- DETECTARE ALT+TAB / SCHIMBARE TAB (ANTICHEAT) ---
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && stareRef.current === 'activ') terminaTest('anticheat');
+      if (document.hidden && stareRef.current === 'activ') {
+        // Sunet la alt+tab / schimbare tab
+        playAlertSound();
+        terminaTest('anticheat');
+      }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -167,7 +180,7 @@ function TestSMULSContent() {
   useEffect(() => {
     if ((stare === 'picat' || stare === 'promovat') && !submitting) {
       if (!cod) return;
-      if (motivRef.current === 'refresh_pagina') return; // Nu trimitem dublu dacă a plecat deja prin beacon
+      if (motivRef.current === 'refresh_pagina') return;
 
       setSubmitting(true);
       fetch('/api/test/submit', {
