@@ -2,11 +2,13 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import TestButtons from '@/components/TestButtons';
 import RegulamentScreen from '@/components/RegulamentScreen';
+
+const COOLDOWN_SOLICITA = 30;
 
 const notify = (type, text) => {
   const base = {
@@ -35,7 +37,6 @@ export default function Dashboard() {
   const router = useRouter();
 
   const [regulamentAccepted, setRegulamentAccepted] = useState(false);
-
   const [selectedTest, setSelectedTest] = useState(null);
   const [code, setCode] = useState('');
   const [codeValid, setCodeValid] = useState(false);
@@ -45,9 +46,23 @@ export default function Dashboard() {
   const [countdown, setCountdown] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
 
-  const handleAcceptRegulament = () => {
-    setRegulamentAccepted(true);
-  };
+  // Cooldown solicită cod
+  const [cooldownSolicita, setCooldownSolicita] = useState(0);
+  const cooldownRef = useRef(null);
+
+  const handleAcceptRegulament = () => setRegulamentAccepted(true);
+
+  // Timer cooldown solicită
+  useEffect(() => {
+    if (cooldownSolicita <= 0) return;
+    cooldownRef.current = setInterval(() => {
+      setCooldownSolicita(prev => {
+        if (prev <= 1) { clearInterval(cooldownRef.current); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(cooldownRef.current);
+  }, [cooldownSolicita > 0]);
 
   useEffect(() => {
     if (code.length === 6) handleValidateCode();
@@ -56,6 +71,7 @@ export default function Dashboard() {
 
   const handleGenerateCode = async () => {
     if (!selectedTest) return notify('error', 'Selectează un test!');
+    if (cooldownSolicita > 0) return;
     setLoadingGenerate(true);
     try {
       const res = await fetch('/api/generate-code', {
@@ -65,7 +81,10 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (!res.ok) notify('error', data.error || 'Eroare la generare.');
-      else notify('success', 'Cod trimis pe Discord');
+      else {
+        notify('success', 'Cod trimis pe Discord');
+        setCooldownSolicita(COOLDOWN_SOLICITA);
+      }
     } catch {
       notify('error', 'Eroare de conexiune la server.');
     } finally {
@@ -84,19 +103,10 @@ export default function Dashboard() {
         body: JSON.stringify({ cod: trimmed }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setCodeValid(true);
-        setValidatedTest(data.testSelectat);
-        notify('success', 'Acces Autorizat!');
-      } else {
-        setCodeValid(false);
-        notify('error', 'Cod test invalid.');
-      }
-    } catch {
-      setCodeValid(false);
-    } finally {
-      setLoadingValidate(false);
-    }
+      if (res.ok) { setCodeValid(true); setValidatedTest(data.testSelectat); notify('success', 'Acces Autorizat!'); }
+      else { setCodeValid(false); notify('error', 'Cod test invalid.'); }
+    } catch { setCodeValid(false); }
+    finally { setLoadingValidate(false); }
   }, [code]);
 
   const handleStartTest = () => {
@@ -122,6 +132,12 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
+  // Progres cerc cooldown (SVG)
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const progress = cooldownSolicita / COOLDOWN_SOLICITA;
+  const dashoffset = circumference * (1 - progress);
+
   if (!regulamentAccepted) {
     return (
       <>
@@ -136,9 +152,7 @@ export default function Dashboard() {
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-        .dash-card {
-          animation: fadeUp 0.5s ease both;
-        }
+        .dash-card { animation: fadeUp 0.5s ease both; }
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -178,11 +192,7 @@ export default function Dashboard() {
           cursor: pointer;
           transition: all 0.2s;
         }
-        .btn-start.active {
-          background: #C0392B;
-          color: #fff;
-          box-shadow: 0 4px 20px rgba(192,57,43,0.35);
-        }
+        .btn-start.active { background: #C0392B; color: #fff; box-shadow: 0 4px 20px rgba(192,57,43,0.35); }
         .btn-start.active:hover { background: #A93226; transform: translateY(-1px); }
         .btn-start.inactive { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); cursor: not-allowed; }
 
@@ -220,9 +230,63 @@ export default function Dashboard() {
           background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
           margin: 4px 0;
         }
+
+        /* Cooldown timer */
+        .cooldown-wrap {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 0 4px;
+          animation: fadeUp 0.3s ease both;
+        }
+
+        .cooldown-ring {
+          position: relative;
+          width: 72px;
+          height: 72px;
+        }
+
+        .cooldown-ring svg {
+          transform: rotate(-90deg);
+        }
+
+        .cooldown-ring-track {
+          stroke: rgba(192,57,43,0.1);
+          fill: none;
+        }
+
+        .cooldown-ring-fill {
+          fill: none;
+          stroke: #C0392B;
+          stroke-linecap: round;
+          transition: stroke-dashoffset 1s linear;
+          filter: drop-shadow(0 0 6px rgba(192,57,43,0.6));
+        }
+
+        .cooldown-number {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 22px;
+          letter-spacing: 0.05em;
+          color: #C0392B;
+        }
+
+        .cooldown-label {
+          font-family: 'DM Mono', monospace;
+          font-size: 8px;
+          letter-spacing: 0.25em;
+          color: rgba(255,255,255,0.2);
+          text-transform: uppercase;
+          text-align: center;
+        }
       `}</style>
 
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', animation: 'fadeUp 0.6s ease both' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
         <Navbar />
 
@@ -283,10 +347,31 @@ export default function Dashboard() {
                   <button
                     className="btn-solicita"
                     onClick={handleGenerateCode}
-                    disabled={loadingGenerate || !selectedTest}
+                    disabled={loadingGenerate || !selectedTest || cooldownSolicita > 0}
                   >
                     {loadingGenerate ? 'generare...' : '+ solicită cod'}
                   </button>
+
+                  {/* Timer cooldown animat */}
+                  {cooldownSolicita > 0 && (
+                    <div className="cooldown-wrap">
+                      <div className="cooldown-ring">
+                        <svg width="72" height="72" viewBox="0 0 72 72">
+                          <circle className="cooldown-ring-track" cx="36" cy="36" r={radius} strokeWidth="3" />
+                          <circle
+                            className="cooldown-ring-fill"
+                            cx="36" cy="36" r={radius}
+                            strokeWidth="3"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={dashoffset}
+                          />
+                        </svg>
+                        <div className="cooldown-number">{cooldownSolicita}</div>
+                      </div>
+                      <p className="cooldown-label">Poți solicita alt cod în {cooldownSolicita}s</p>
+                    </div>
+                  )}
+
                   <button
                     className={`btn-start ${codeValid && countdown === null ? 'active' : 'inactive'}`}
                     onClick={handleStartTest}
