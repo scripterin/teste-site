@@ -13,78 +13,44 @@ export default function Navbar() {
   const avatar = user.avatar || user.image;
 
   return (
-    <>
-      <style jsx global>{`
-        .navbar-wrap {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 50;
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          padding: 12px 24px;
-          background: rgba(10,8,8,0.6);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-end px-6 py-4">
+      <div className="flex items-center gap-3">
+        {avatar ? (
+          <Image
+            src={avatar}
+            alt={username}
+            width={34}
+            height={34}
+            className="rounded-full"
+            style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+          />
+        ) : (
+          <div style={{
+            width: 34,
+            height: 34,
+            borderRadius: '50%',
+            background: 'rgba(192,57,43,0.15)',
+            border: '1px solid rgba(192,57,43,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#C0392B',
+          }}>
+            {username.charAt(0).toUpperCase()}
+          </div>
+        )}
 
-        .navbar-user {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .navbar-username {
-          font-family: 'DM Mono', monospace;
-          font-size: 11px;
-          font-weight: 500;
-          color: rgba(240,234,232,0.5);
-          letter-spacing: 0.08em;
-        }
-
-        @media (max-width: 480px) {
-          .navbar-wrap {
-            padding: 10px 16px;
-          }
-          .navbar-username {
-            font-size: 10px;
-          }
-        }
-      `}</style>
-
-      <nav className="navbar-wrap">
-        <div className="navbar-user">
-          {avatar ? (
-            <Image
-              src={avatar}
-              alt={username}
-              width={30}
-              height={30}
-              style={{ borderRadius: '50%', border: '1px solid rgba(255,255,255,0.08)' }}
-            />
-          ) : (
-            <div style={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: 'rgba(192,57,43,0.15)',
-              border: '1px solid rgba(192,57,43,0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#C0392B',
-            }}>
-              {username.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <span className="navbar-username">@{username}</span>
-        </div>
-      </nav>
-    </>
+        <span style={{
+          fontSize: 13,
+          fontWeight: 500,
+          color: 'rgba(240,234,232,0.7)',
+          letterSpacing: '0.01em',
+        }}>
+          @{username}
+        </span>
+      </div>
+    </nav>
   );
 }

@@ -36,75 +36,51 @@ const TESTS = [
 
 export default function TestButtons({ selected, onSelect }) {
   return (
-    <>
-      <style>{`
-        .test-btn-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
-          width: 100%;
-        }
-        .test-btn {
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          gap: 10px;
-          padding: 12px 14px;
-          border-radius: 999px;
-          font-family: 'DM Mono', monospace;
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          white-space: nowrap;
-          overflow: hidden;
-        }
-        @media (max-width: 400px) {
-          .test-btn {
-            padding: 10px 10px;
-            font-size: 9px;
-            gap: 7px;
-          }
-          .test-btn-dot { width: 5px !important; height: 5px !important; }
-        }
-      `}</style>
-      <div className="test-btn-grid">
-        {TESTS.map((test) => {
-          const isSelected = selected === test.id;
-          return (
-            <button
-              key={test.id}
-              onClick={() => onSelect(test.id)}
-              className="test-btn"
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', width: '100%', maxWidth: '500px' }}>
+      {TESTS.map((test) => {
+        const isSelected = selected === test.id;
+        return (
+          <button
+            key={test.id}
+            onClick={() => onSelect(test.id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              gap: '10px',
+              padding: '12px 16px',
+              borderRadius: '999px',
+              backgroundColor: isSelected ? 'rgba(192,57,43,0.12)' : 'rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: `1px solid ${isSelected ? 'rgba(192,57,43,0.6)' : 'rgba(255,255,255,0.07)'}`,
+              color: isSelected ? '#C0392B' : 'rgba(255,255,255,0.35)',
+              fontSize: '11px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontFamily: "'DM Mono', monospace",
+              boxShadow: isSelected ? '0 0 16px rgba(192,57,43,0.15)' : 'none',
+            }}
+          >
+            <div
               style={{
-                backgroundColor: isSelected ? 'rgba(192,57,43,0.12)' : 'rgba(255,255,255,0.04)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                border: `1px solid ${isSelected ? 'rgba(192,57,43,0.6)' : 'rgba(255,255,255,0.07)'}`,
-                color: isSelected ? '#C0392B' : 'rgba(255,255,255,0.35)',
-                boxShadow: isSelected ? '0 0 16px rgba(192,57,43,0.15)' : 'none',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: isSelected ? '#C0392B' : 'rgba(255,255,255,0.1)',
+                flexShrink: 0,
+                boxShadow: isSelected ? '0 0 8px #C0392B' : 'none',
+                transition: 'all 0.2s ease',
               }}
-            >
-              <div
-                className="test-btn-dot"
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  backgroundColor: isSelected ? '#C0392B' : 'rgba(255,255,255,0.1)',
-                  boxShadow: isSelected ? '0 0 8px #C0392B' : 'none',
-                  transition: 'all 0.2s ease',
-                }}
-              />
-              <test.Icon color={isSelected ? '#C0392B' : 'rgba(255,255,255,0.3)'} />
-              <span>{test.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </>
+            />
+            <test.Icon color={isSelected ? '#C0392B' : 'rgba(255,255,255,0.3)'} />
+            <span>{test.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
