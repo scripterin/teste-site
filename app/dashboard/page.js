@@ -368,7 +368,7 @@ export default function Dashboard() {
                         </svg>
                         <div className="cooldown-number">{cooldownSolicita}</div>
                       </div>
-                      <p className="cooldown-label">Poți solicita alt cod în {cooldownSolicita}s</p>
+                      <p className="cooldown-label">Așteaptă înainte de a solicita din nou</p>
                     </div>
                   )}
 
