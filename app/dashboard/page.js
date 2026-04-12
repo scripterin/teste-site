@@ -46,13 +46,11 @@ export default function Dashboard() {
   const [countdown, setCountdown] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
 
-  // Cooldown solicită cod
   const [cooldownSolicita, setCooldownSolicita] = useState(0);
   const cooldownRef = useRef(null);
 
   const handleAcceptRegulament = () => setRegulamentAccepted(true);
 
-  // Timer cooldown solicită
   useEffect(() => {
     if (cooldownSolicita <= 0) return;
     cooldownRef.current = setInterval(() => {
@@ -132,7 +130,6 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
-  // Progres cerc cooldown (SVG)
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const progress = cooldownSolicita / COOLDOWN_SOLICITA;
@@ -198,13 +195,13 @@ export default function Dashboard() {
 
         .code-input {
           width: 100%;
-          height: 64px;
+          height: 60px;
           background: rgba(0,0,0,0.25);
           border: 1px solid rgba(255,255,255,0.08);
           border-radius: 12px;
           text-align: center;
           font-family: 'DM Mono', monospace;
-          font-size: 26px;
+          font-size: 24px;
           letter-spacing: 0.5em;
           padding-left: 0.5em;
           color: #F0EAE8;
@@ -231,6 +228,22 @@ export default function Dashboard() {
           margin: 4px 0;
         }
 
+        .dash-inner {
+          padding: 36px 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+        }
+
+        .dash-title {
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 46px;
+          letter-spacing: 0.04em;
+          color: #F0EAE8;
+          line-height: 0.95;
+          margin: 0;
+        }
+
         /* Cooldown timer */
         .cooldown-wrap {
           display: flex;
@@ -240,22 +253,9 @@ export default function Dashboard() {
           padding: 16px 0 4px;
           animation: fadeUp 0.3s ease both;
         }
-
-        .cooldown-ring {
-          position: relative;
-          width: 72px;
-          height: 72px;
-        }
-
-        .cooldown-ring svg {
-          transform: rotate(-90deg);
-        }
-
-        .cooldown-ring-track {
-          stroke: rgba(192,57,43,0.1);
-          fill: none;
-        }
-
+        .cooldown-ring { position: relative; width: 72px; height: 72px; }
+        .cooldown-ring svg { transform: rotate(-90deg); }
+        .cooldown-ring-track { stroke: rgba(192,57,43,0.1); fill: none; }
         .cooldown-ring-fill {
           fill: none;
           stroke: #C0392B;
@@ -263,7 +263,6 @@ export default function Dashboard() {
           transition: stroke-dashoffset 1s linear;
           filter: drop-shadow(0 0 6px rgba(192,57,43,0.6));
         }
-
         .cooldown-number {
           position: absolute;
           inset: 0;
@@ -275,22 +274,68 @@ export default function Dashboard() {
           letter-spacing: 0.05em;
           color: #C0392B;
         }
-
         .cooldown-label {
           font-family: 'DM Mono', monospace;
           font-size: 8px;
-          letter-spacing: 0.25em;
+          letter-spacing: 0.2em;
           color: rgba(255,255,255,0.2);
           text-transform: uppercase;
           text-align: center;
         }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+          .dash-inner {
+            padding: 24px 20px;
+            gap: 20px;
+          }
+          .dash-title {
+            font-size: 36px;
+          }
+          .btn-solicita,
+          .btn-start {
+            padding: 14px;
+            font-size: 10px;
+          }
+          .code-input {
+            height: 56px;
+            font-size: 20px;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .dash-inner {
+            padding: 20px 16px;
+            gap: 16px;
+          }
+          .dash-title {
+            font-size: 30px;
+          }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+          .dash-inner {
+            padding: 30px 28px;
+            gap: 24px;
+          }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Toaster position="bottom-right" toastOptions={{ duration: 4500 }} />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{ duration: 4500 }}
+          containerStyle={{ bottom: 16, right: 16 }}
+        />
         <Navbar />
 
-        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+        <main style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '80px 16px 32px',
+        }}>
           <div className="dash-card" style={{ width: '100%', maxWidth: 460 }}>
 
             <div style={{
@@ -304,13 +349,13 @@ export default function Dashboard() {
             }}>
               <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
-              <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+              <div className="dash-inner">
 
                 <header>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
                     Site teste
                   </p>
-                  <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 46, letterSpacing: '0.04em', color: '#F0EAE8', lineHeight: 0.95, margin: 0 }}>
+                  <h1 className="dash-title">
                     DEP.<br /><span style={{ color: '#C0392B' }}>MEDICAL</span>
                   </h1>
                 </header>
@@ -335,6 +380,8 @@ export default function Dashboard() {
                     placeholder="——————"
                     maxLength={6}
                     className={`code-input${codeValid ? ' valid' : ''}`}
+                    autoComplete="off"
+                    autoCapitalize="characters"
                   />
                   {loadingValidate && (
                     <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#C0392B', marginTop: 8, letterSpacing: '0.15em' }}>
@@ -352,7 +399,6 @@ export default function Dashboard() {
                     {loadingGenerate ? 'generare...' : '+ solicită cod'}
                   </button>
 
-                  {/* Timer cooldown animat */}
                   {cooldownSolicita > 0 && (
                     <div className="cooldown-wrap">
                       <div className="cooldown-ring">
