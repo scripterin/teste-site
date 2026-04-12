@@ -132,7 +132,7 @@ export default function Home() {
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em'
                 }}>
-                  Conectează-te cu Discord pentru a valida identitatea și a accesa panoul de teste.
+                  Autentifică-te pentru a accesa testele.
                 </p>
               </div>
 
