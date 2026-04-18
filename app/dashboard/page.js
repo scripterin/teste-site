@@ -25,9 +25,9 @@ const notify = (type, text) => {
     border: '1px solid rgba(255,255,255,0.08)',
   };
   const themes = {
-    success: { ...base, borderLeft: '3px solid #073763' },
-    error:   { ...base, borderLeft: '3px solid #0a2a4a', color: '#a8d4f5' },
-    info:    { ...base, borderLeft: '3px solid rgba(255,255,255,0.2)', color: '#c5dff5' },
+    success: { ...base, borderLeft: '3px solid #C0392B' },
+    error:   { ...base, borderLeft: '3px solid #7C3030', color: '#ffb3b0' },
+    info:    { ...base, borderLeft: '3px solid rgba(255,255,255,0.2)', color: '#E1BFB9' },
   };
   toast(text, { style: themes[type] || themes.info, icon: null });
 };
@@ -46,11 +46,13 @@ export default function Dashboard() {
   const [countdown, setCountdown] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
 
+  // Cooldown solicită cod
   const [cooldownSolicita, setCooldownSolicita] = useState(0);
   const cooldownRef = useRef(null);
 
   const handleAcceptRegulament = () => setRegulamentAccepted(true);
 
+  // Timer cooldown solicită
   useEffect(() => {
     if (cooldownSolicita <= 0) return;
     cooldownRef.current = setInterval(() => {
@@ -130,6 +132,7 @@ export default function Dashboard() {
     }
   }, [countdown, router, validatedTest, code]);
 
+  // Progres cerc cooldown (SVG)
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const progress = cooldownSolicita / COOLDOWN_SOLICITA;
@@ -159,9 +162,9 @@ export default function Dashboard() {
           width: 100%;
           padding: 15px;
           background: transparent;
-          border: 1px solid rgba(7,55,99,0.55);
+          border: 1px solid rgba(192,57,43,0.5);
           border-radius: 12px;
-          color: #4a9eda;
+          color: #C0392B;
           font-family: 'DM Mono', monospace;
           font-size: 11px;
           font-weight: 500;
@@ -171,8 +174,8 @@ export default function Dashboard() {
           transition: all 0.2s;
         }
         .btn-solicita:hover:not(:disabled) {
-          background: rgba(7,55,99,0.12);
-          border-color: #1a6db5;
+          background: rgba(192,57,43,0.08);
+          border-color: #C0392B;
         }
         .btn-solicita:disabled { opacity: 0.3; cursor: not-allowed; }
 
@@ -189,8 +192,8 @@ export default function Dashboard() {
           cursor: pointer;
           transition: all 0.2s;
         }
-        .btn-start.active { background: #073763; color: #a8d4f5; box-shadow: 0 4px 20px rgba(7,55,99,0.45); }
-        .btn-start.active:hover { background: #0d4f8a; transform: translateY(-1px); }
+        .btn-start.active { background: #C0392B; color: #fff; box-shadow: 0 4px 20px rgba(192,57,43,0.35); }
+        .btn-start.active:hover { background: #A93226; transform: translateY(-1px); }
         .btn-start.inactive { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.2); cursor: not-allowed; }
 
         .code-input {
@@ -208,8 +211,8 @@ export default function Dashboard() {
           outline: none;
           transition: all 0.2s;
         }
-        .code-input:focus { border-color: rgba(7,55,99,0.7); box-shadow: 0 0 0 3px rgba(7,55,99,0.18); }
-        .code-input.valid { border-color: #1a6db5; color: #4a9eda; }
+        .code-input:focus { border-color: rgba(192,57,43,0.6); box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
+        .code-input.valid { border-color: #C0392B; color: #C0392B; }
         .code-input::placeholder { color: rgba(255,255,255,0.1); letter-spacing: 0.4em; }
 
         .dash-label {
@@ -228,6 +231,7 @@ export default function Dashboard() {
           margin: 4px 0;
         }
 
+        /* Cooldown timer */
         .cooldown-wrap {
           display: flex;
           flex-direction: column;
@@ -248,16 +252,16 @@ export default function Dashboard() {
         }
 
         .cooldown-ring-track {
-          stroke: rgba(7,55,99,0.15);
+          stroke: rgba(192,57,43,0.1);
           fill: none;
         }
 
         .cooldown-ring-fill {
           fill: none;
-          stroke: #1a6db5;
+          stroke: #C0392B;
           stroke-linecap: round;
           transition: stroke-dashoffset 1s linear;
-          filter: drop-shadow(0 0 6px rgba(7,55,99,0.7));
+          filter: drop-shadow(0 0 6px rgba(192,57,43,0.6));
         }
 
         .cooldown-number {
@@ -269,7 +273,7 @@ export default function Dashboard() {
           font-family: 'Bebas Neue', sans-serif;
           font-size: 22px;
           letter-spacing: 0.05em;
-          color: #4a9eda;
+          color: #C0392B;
         }
 
         .cooldown-label {
@@ -298,16 +302,16 @@ export default function Dashboard() {
               boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
               overflow: 'hidden',
             }}>
-              <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #073763, transparent)' }} />
+              <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
               <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
                 <header>
-                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#4a9eda', marginBottom: 8, textTransform: 'uppercase' }}>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
                     Site teste
                   </p>
                   <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 46, letterSpacing: '0.04em', color: '#F0EAE8', lineHeight: 0.95, margin: 0 }}>
-                    DEP.<br /><span style={{ color: '#4a9eda' }}>MEDICAL</span>
+                    DEP.<br /><span style={{ color: '#C0392B' }}>MEDICAL</span>
                   </h1>
                 </header>
 
@@ -333,7 +337,7 @@ export default function Dashboard() {
                     className={`code-input${codeValid ? ' valid' : ''}`}
                   />
                   {loadingValidate && (
-                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#4a9eda', marginTop: 8, letterSpacing: '0.15em' }}>
+                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#C0392B', marginTop: 8, letterSpacing: '0.15em' }}>
                       verificare...
                     </p>
                   )}
@@ -348,6 +352,7 @@ export default function Dashboard() {
                     {loadingGenerate ? 'generare...' : '+ solicită cod'}
                   </button>
 
+                  {/* Timer cooldown animat */}
                   {cooldownSolicita > 0 && (
                     <div className="cooldown-wrap">
                       <div className="cooldown-ring">
