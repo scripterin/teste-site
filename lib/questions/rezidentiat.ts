@@ -124,7 +124,7 @@ export const INTREBARI_REZIDENTIAT: Intrebare[] = [
       'Generală',
       'Locală'
     ],
-    raspunsCorect: 'Generală'
+    raspunsCorect: 'Rahianestezie'
   },
   {
     id: 13,
