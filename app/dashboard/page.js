@@ -82,7 +82,7 @@ export default function Dashboard() {
       const data = await res.json();
       if (!res.ok) notify('error', data.error || 'Eroare la generare.');
       else {
-        notify('success', 'Cod trimis pe Discord');
+        notify('success', 'Codul a fost trimis pe Discord — verifică mesajele private!');
         setCooldownSolicita(COOLDOWN_SOLICITA);
       }
     } catch {
