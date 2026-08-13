@@ -39,8 +39,5 @@ export async function POST(req: NextRequest) {
 
   const corect = raspunsUser.trim() === intrebare.raspunsCorect.trim();
 
-  return NextResponse.json({
-    corect,
-    raspunsCorect: corect ? undefined : intrebare.raspunsCorect,
-  });
+  return NextResponse.json({ corect });
 }
