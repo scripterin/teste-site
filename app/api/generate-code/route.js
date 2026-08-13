@@ -86,8 +86,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Codul a fost generat și trimis pe Discord!',
-      cod,
+      message: 'Codul a fost trimis pe Discord! Verifică mesajele private.',
       expiresAt: expiresAt.toISOString(),
     });
 
