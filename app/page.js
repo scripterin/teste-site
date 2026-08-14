@@ -4,6 +4,21 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+function generateEcgPath(cycles, cycleWidth, height, baseline) {
+  let d = `M0,${baseline}`;
+  for (let i = 0; i < cycles; i++) {
+    const x = i * cycleWidth;
+    d += ` L${x + 22},${baseline}`;
+    d += ` L${x + 32},${baseline - 6}`;
+    d += ` L${x + 40},${baseline + 5}`;
+    d += ` L${x + 48},${baseline - height * 0.85}`;
+    d += ` L${x + 56},${baseline + height * 0.55}`;
+    d += ` L${x + 64},${baseline}`;
+    d += ` L${x + cycleWidth},${baseline}`;
+  }
+  return d;
+}
+
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -16,10 +31,18 @@ export default function Home() {
     }
   }, [status, router]);
 
+  const cycles = 6;
+  const cycleWidth = 110;
+  const ecgHeight = 60;
+  const baseline = 32;
+  const totalWidth = cycles * cycleWidth;
+  const ecgPath = generateEcgPath(cycles, cycleWidth, ecgHeight, baseline);
+
   if (status === 'authenticated') {
     return (
-      <div className="min-h-screen bg-[#F4F2ED] flex items-center justify-center">
-        <div className="w-9 h-9 border-2 border-[#1F4B47] border-t-transparent rounded-full animate-spin" />
+      <div style={{ minHeight: '100vh', background: '#F8F6F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 34, height: 34, border: '2px solid #A3172A', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -29,169 +52,200 @@ export default function Home() {
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
-        html, body { background: #F4F2ED; }
+        html, body { margin: 0; background: #F8F6F1; }
 
-        .login-card {
-          animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+        .auth-grid {
+          min-height: 100vh;
+          display: grid;
+          grid-template-columns: 1.15fr 1fr;
+        }
+        @media (max-width: 880px) {
+          .auth-grid { grid-template-columns: 1fr; }
+          .auth-left { min-height: 280px; }
         }
 
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .paper-bg {
-          position: fixed;
-          inset: 0;
-          z-index: -1;
-          background-color: #F4F2ED;
-          background-image:
-            radial-gradient(circle at 20% 15%, rgba(31,75,71,0.05), transparent 45%),
-            radial-gradient(circle at 85% 85%, rgba(31,75,71,0.04), transparent 40%);
-        }
-
-        .cross-mark {
-          width: 22px;
-          height: 22px;
+        .auth-left {
           position: relative;
-          margin: 0 auto 22px;
+          background: linear-gradient(160deg, #3A0E12 0%, #6E1B22 65%, #7E2029 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 64px;
+          overflow: hidden;
         }
-        .cross-mark::before, .cross-mark::after {
+        .auth-left::before {
           content: '';
           position: absolute;
-          background: #1F4B47;
-        }
-        .cross-mark::before {
-          width: 100%; height: 3px;
-          top: 50%; left: 0;
-          transform: translateY(-50%);
-        }
-        .cross-mark::after {
-          height: 100%; width: 3px;
-          left: 50%; top: 0;
-          transform: translateX(-50%);
+          inset: 0;
+          background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px);
+          background-size: 3px 3px;
+          opacity: 0.5;
+          pointer-events: none;
         }
 
-        .divider-line {
-          height: 1px;
-          background: #DEDAD1;
+        .ecg-track {
+          position: relative;
+          width: 100%;
+          height: 60px;
+          overflow: hidden;
+          margin: 28px 0 32px;
+          -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+          mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        }
+        .ecg-scroll {
+          display: flex;
+          width: ${totalWidth * 2}px;
+          animation: ecgMove 5.5s linear infinite;
+        }
+        @keyframes ecgMove {
+          from { transform: translateX(0); }
+          to { transform: translateX(-${totalWidth}px); }
+        }
+
+        .right-panel {
+          background: #F8F6F1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 48px 32px;
+        }
+
+        .form-card {
+          width: 100%;
+          max-width: 380px;
         }
 
         .btn-discord {
           width: 100%;
           padding: 17px;
-          background: #1F4B47;
+          background: #A3172A;
           border: none;
           border-radius: 10px;
-          color: #F4F2ED;
+          color: #F8F6F1;
           font-family: 'Inter', sans-serif;
           font-size: 13px;
           font-weight: 600;
-          letter-spacing: 0.02em;
           cursor: pointer;
-          transition: all 0.25s ease;
+          transition: background 0.25s ease, transform 0.25s ease;
         }
+        .btn-discord:hover { background: #841221; transform: translateY(-1px); }
+        .btn-discord:active { transform: translateY(0); }
 
-        .btn-discord:hover {
-          background: #163934;
-          transform: translateY(-1px);
-        }
-
-        .btn-discord:active {
-          transform: translateY(0);
+        .field-line {
+          height: 1px;
+          background: #E7E1D6;
         }
       `}</style>
 
-      <div className="paper-bg" />
+      <div className="auth-grid">
 
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        fontFamily: "'Inter', sans-serif",
-      }}>
-        <div className="login-card" style={{ width: '100%', maxWidth: 400 }}>
-
-          <div style={{
-            background: '#FFFFFF',
-            border: '1px solid #DEDAD1',
-            borderRadius: 16,
-            boxShadow: '0 24px 60px rgba(30,36,34,0.08)',
-            overflow: 'hidden',
+        {/* PANOU STÂNGA — identitate / semnătură vizuală */}
+        <div className="auth-left">
+          <p style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 11,
+            letterSpacing: '0.32em',
+            color: 'rgba(248,246,241,0.55)',
+            textTransform: 'uppercase',
+            margin: 0,
           }}>
-            <div style={{ height: 3, background: '#1F4B47' }} />
+            Departamentul Medical &middot; FPlayT
+          </p>
 
-            <div style={{ padding: '48px 40px 40px', display: 'flex', flexDirection: 'column', gap: 30 }}>
+          <h1 style={{
+            fontFamily: "'Fraunces', serif",
+            fontWeight: 500,
+            fontSize: 'clamp(34px, 5vw, 54px)',
+            lineHeight: 1.08,
+            letterSpacing: '-0.01em',
+            color: '#F8F6F1',
+            margin: '18px 0 0',
+          }}>
+            Fiecare acces,<br /><span style={{ fontStyle: 'italic', color: '#F1A79E' }}>verificat.</span>
+          </h1>
 
-              <header style={{ textAlign: 'center' }}>
-                <div className="cross-mark" />
-                <p style={{
-                  fontFamily: "'IBM Plex Mono', monospace",
-                  fontSize: 10,
-                  letterSpacing: '0.28em',
-                  color: '#1F4B47',
-                  marginBottom: 12,
-                  textTransform: 'uppercase',
-                }}>
-                  Sistem de autentificare
-                </p>
-                <h1 style={{
-                  fontFamily: "'Fraunces', serif",
-                  fontOpticalSizing: 'auto',
-                  fontWeight: 500,
-                  fontSize: 38,
-                  letterSpacing: '-0.01em',
-                  color: '#1E2422',
-                  lineHeight: 1.1,
-                  margin: 0,
-                }}>
-                  Acces Departament<br /><span style={{ color: '#1F4B47', fontStyle: 'italic' }}>Medical</span>
-                </h1>
-              </header>
-
-              <div className="divider-line" />
-
-              <p style={{
-                fontSize: 13,
-                color: '#6B7570',
-                lineHeight: 1.65,
-                fontFamily: "'Inter', sans-serif",
-                textAlign: 'center',
-                margin: 0,
-              }}>
-                Autentifică-te cu contul de Discord al comunității pentru a accesa testele de certificare.
-              </p>
-
-              <button
-                onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
-                className="btn-discord"
-              >
-                Conectare prin Discord
-              </button>
-
+          <div className="ecg-track">
+            <div className="ecg-scroll">
+              <svg width={totalWidth} height={ecgHeight + 10} viewBox={`0 0 ${totalWidth} ${ecgHeight + 10}`}>
+                <path d={ecgPath} fill="none" stroke="#F1A79E" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+              </svg>
+              <svg width={totalWidth} height={ecgHeight + 10} viewBox={`0 0 ${totalWidth} ${ecgHeight + 10}`}>
+                <path d={ecgPath} fill="none" stroke="#F1A79E" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+              </svg>
             </div>
+          </div>
 
-            <div style={{
-              borderTop: '1px solid #EDEAE2',
-              padding: '16px 32px',
-              background: '#FAF9F6',
-              textAlign: 'center',
+          <p style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14,
+            lineHeight: 1.7,
+            color: 'rgba(248,246,241,0.72)',
+            maxWidth: 400,
+            margin: 0,
+          }}>
+            Sistemul de testare al Departamentului Medical. Autentificarea prin Discord confirmă identitatea înainte de orice evaluare sau certificare.
+          </p>
+        </div>
+
+        {/* PANOU DREAPTA — formular */}
+        <div className="right-panel">
+          <div className="form-card">
+            <p style={{
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: 10,
+              letterSpacing: '0.28em',
+              color: '#A3172A',
+              textTransform: 'uppercase',
+              margin: '0 0 10px',
             }}>
+              Autentificare
+            </p>
+
+            <h2 style={{
+              fontFamily: "'Fraunces', serif",
+              fontWeight: 500,
+              fontSize: 27,
+              color: '#1E1B19',
+              margin: '0 0 28px',
+              lineHeight: 1.2,
+            }}>
+              Conectează-te pentru a continua
+            </h2>
+
+            <div className="field-line" style={{ marginBottom: 28 }} />
+
+            <button
+              onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
+              className="btn-discord"
+            >
+              Conectare prin Discord
+            </button>
+
+            <p style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 12,
+              color: '#9C948B',
+              marginTop: 18,
+              lineHeight: 1.6,
+            }}>
+              Ai nevoie de contul de Discord al comunității pentru a accesa testele.
+            </p>
+
+            <div style={{ marginTop: 48 }}>
               <p style={{
                 fontFamily: "'IBM Plex Mono', monospace",
                 fontSize: 9,
                 letterSpacing: '0.2em',
-                color: '#A6A198',
+                color: '#C4BCB0',
                 textTransform: 'uppercase',
                 margin: 0,
               }}>
-                Departamentul Medical FPlayT &middot; 2026
+                &copy; 2026 Departamentul Medical FPlayT
               </p>
             </div>
           </div>
         </div>
+
       </div>
     </>
   );
