@@ -18,9 +18,8 @@ export default function Home() {
 
   if (status === 'authenticated') {
     return (
-      <div style={{ minHeight: '100vh', background: '#0A0A0D', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ width: 34, height: 34, border: '2px solid #FF3B4E', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="min-h-screen bg-[#0F0D0D] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#C0392B] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -28,229 +27,136 @@ export default function Home() {
   return (
     <>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-        html, body { margin: 0; background: #0A0A0D; overflow-x: hidden; }
-
-        .scene {
-          position: relative;
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 24px;
+        .login-card {
+          animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        .blob {
-          position: fixed;
-          border-radius: 50%;
-          filter: blur(90px);
-          opacity: 0.55;
-          pointer-events: none;
-          z-index: 0;
-        }
-        .blob-1 {
-          width: 520px; height: 520px;
-          top: -140px; left: -120px;
-          background: radial-gradient(circle at 30% 30%, #FF3B4E, #7A0F1E 70%);
-          animation: float1 14s ease-in-out infinite;
-        }
-        .blob-2 {
-          width: 460px; height: 460px;
-          bottom: -160px; right: -100px;
-          background: radial-gradient(circle at 60% 40%, #FF6B4A, #5C0E14 70%);
-          animation: float2 17s ease-in-out infinite;
-        }
-        .blob-3 {
-          width: 300px; height: 300px;
-          top: 50%; right: 12%;
-          background: radial-gradient(circle, #FF8A9B, #4A0A12 75%);
-          opacity: 0.35;
-          animation: float3 12s ease-in-out infinite;
-        }
-        @keyframes float1 {
-          0%, 100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(60px,40px) scale(1.08); }
-        }
-        @keyframes float2 {
-          0%, 100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(-50px,-30px) scale(1.05); }
-        }
-        @keyframes float3 {
-          0%, 100% { transform: translate(0,0); }
-          50% { transform: translate(-30px,50px); }
-        }
-
-        .grain {
-          position: fixed;
-          inset: 0;
-          z-index: 1;
-          opacity: 0.035;
-          pointer-events: none;
-          background-image: radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
-          background-size: 3px 3px;
-        }
-
-        .glass-card {
-          position: relative;
-          z-index: 2;
-          width: 100%;
-          max-width: 420px;
-          background: rgba(255,255,255,0.055);
-          backdrop-filter: blur(28px) saturate(160%);
-          -webkit-backdrop-filter: blur(28px) saturate(160%);
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 28px;
-          box-shadow:
-            0 40px 100px rgba(0,0,0,0.55),
-            inset 0 1px 0 rgba(255,255,255,0.25),
-            inset 0 0 0 1px rgba(255,255,255,0.03);
-          overflow: hidden;
-          animation: cardIn 0.8s cubic-bezier(0.16,1,0.3,1) both;
-        }
-        @keyframes cardIn {
-          from { opacity: 0; transform: translateY(26px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .glass-sheen {
-          position: absolute;
-          top: 0; left: -40%;
-          width: 60%; height: 100%;
-          background: linear-gradient(105deg, transparent, rgba(255,255,255,0.06), transparent);
-          transform: skewX(-15deg);
-          animation: sheen 6s ease-in-out infinite;
-          pointer-events: none;
-        }
-        @keyframes sheen {
-          0% { left: -40%; }
-          35%, 100% { left: 130%; }
-        }
-
-        .badge-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%;
-          background: #FF3B4E;
-          box-shadow: 0 0 12px 2px rgba(255,59,78,0.7);
-        }
-
-        .divider-glass {
-          height: 1px;
-          background: linear-gradient(to right, transparent, rgba(255,255,255,0.14), transparent);
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .btn-discord {
-          position: relative;
           width: 100%;
-          padding: 17px;
-          background: linear-gradient(135deg, #FF3B4E, #C41730);
-          border: 1px solid rgba(255,255,255,0.2);
-          border-radius: 14px;
-          color: #fff;
-          font-family: 'Inter', sans-serif;
-          font-size: 13.5px;
+          padding: 18px;
+          background: #C0392B; /* Schimbat la roșu pentru unitate cu dashboard-ul */
+          border: none;
+          border-radius: 12px;
+          color: white;
+          font-family: 'DM Mono', monospace;
+          font-size: 11px;
           font-weight: 600;
-          letter-spacing: 0.01em;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
           cursor: pointer;
-          overflow: hidden;
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
-          box-shadow: 0 12px 30px rgba(255,59,78,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+          transition: all 0.3s ease;
+          box-shadow: 0 10px 30px rgba(192, 57, 43, 0.2);
         }
+
         .btn-discord:hover {
+          background: #A93226;
           transform: translateY(-2px);
-          box-shadow: 0 18px 40px rgba(255,59,78,0.5), inset 0 1px 0 rgba(255,255,255,0.35);
+          box-shadow: 0 15px 35px rgba(192, 57, 43, 0.3);
         }
-        .btn-discord:active { transform: translateY(0); }
-        .btn-discord::after {
-          content: '';
-          position: absolute;
-          top: 0; left: -60%;
-          width: 40%; height: 100%;
-          background: linear-gradient(105deg, transparent, rgba(255,255,255,0.35), transparent);
-          transform: skewX(-15deg);
-          transition: left 0.6s ease;
+
+        .btn-discord:active {
+          transform: translateY(0);
         }
-        .btn-discord:hover::after { left: 130%; }
+
+        .dash-divider {
+          height: 1px;
+          background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+          margin: 4px 0;
+        }
+
+        .bg-overlay {
+          position: fixed;
+          inset: 0;
+          background: linear-gradient(to bottom, rgba(15, 13, 13, 0.8), rgba(15, 13, 13, 0.95));
+          z-index: -1;
+        }
       `}</style>
 
-      <div className="scene">
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
-        <div className="grain" />
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        padding: '24px',
+        fontFamily: "'DM Sans', sans-serif",
+        backgroundImage: 'url("/image.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}>
+        {/* Overlay pentru a asigura contrastul textului */}
+        <div className="bg-overlay" />
 
-        <div className="glass-card">
-          <div className="glass-sheen" />
+        <div className="login-card" style={{ width: '100%', maxWidth: 420 }}>
+          
+          <div style={{
+            background: 'rgba(18,14,12,0.85)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 24,
+            boxShadow: '0 40px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)',
+            overflow: 'hidden',
+          }}>
+            {/* Accent top tipic dashboard-ului */}
+            <div style={{ height: 3, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
-          <div style={{ padding: '46px 38px 38px', display: 'flex', flexDirection: 'column', gap: 26 }}>
+            <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', gap: 36 }}>
+              
+              {/* Header Branding */}
+              <header style={{ textAlign: 'center' }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.45em', color: '#C0392B', marginBottom: 14, textTransform: 'uppercase' }}>
+                  Sistem Autentificare
+                </p>
+                <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 56, letterSpacing: '0.02em', color: '#F0EAE8', lineHeight: 0.9, margin: 0 }}>
+                  ACCES<br /><span style={{ color: '#C0392B' }}>MEDICAL</span>
+                </h1>
+              </header>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <div className="badge-dot" />
-              <p style={{
-                fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: 10.5,
-                letterSpacing: '0.24em',
-                color: 'rgba(255,255,255,0.55)',
-                textTransform: 'uppercase',
-                margin: 0,
-              }}>
-                Departamentul Medical &middot; FPlayT
-              </p>
+              <div className="dash-divider" />
+
+              {/* Mesaj informativ */}
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ 
+                  fontSize: '12px', 
+                  color: 'rgba(240, 234, 232, 0.6)', 
+                  lineHeight: '1.8', 
+                  fontFamily: "'DM Mono', monospace",
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Autentifică-te pentru a accesa testele.
+                </p>
+              </div>
+
+              {/* Buton Login - Fără Iconiță */}
+              <button 
+                onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
+                className="btn-discord"
+              >
+                Conectare prin Discord
+              </button>
+
             </div>
 
-            <h1 style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700,
-              fontSize: 40,
-              letterSpacing: '-0.02em',
-              lineHeight: 1.05,
-              color: '#FFFFFF',
-              margin: 0,
+            {/* Footer */}
+            <div style={{
+              borderTop: '1px solid rgba(255,255,255,0.03)',
+              padding: '20px 32px',
+              background: 'rgba(0,0,0,0.3)',
+              textAlign: 'center',
             }}>
-              Intră în<br /><span style={{
-                background: 'linear-gradient(135deg, #FF6B7A, #FF3B4E 60%, #FF8A5C)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}>sistem.</span>
-            </h1>
-
-            <p style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 13.5,
-              lineHeight: 1.65,
-              color: 'rgba(255,255,255,0.55)',
-              margin: 0,
-            }}>
-              Autentifică-te cu contul de Discord al comunității ca să accesezi testele de certificare.
-            </p>
-
-            <div className="divider-glass" />
-
-            <button
-              onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
-              className="btn-discord"
-            >
-              Conectare prin Discord
-            </button>
-
-          </div>
-
-          <div style={{
-            borderTop: '1px solid rgba(255,255,255,0.08)',
-            padding: '16px 38px',
-            background: 'rgba(0,0,0,0.15)',
-          }}>
-            <p style={{
-              fontFamily: "'IBM Plex Mono', monospace",
-              fontSize: 9,
-              letterSpacing: '0.18em',
-              color: 'rgba(255,255,255,0.3)',
-              textTransform: 'uppercase',
-              margin: 0,
-            }}>
-              &copy; 2026 Departamentul Medical FPlayT
-            </p>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', margin: 0 }}>
+                Departamentul Medical FPlayT &copy; 2026
+              </p>
+            </div>
           </div>
         </div>
       </div>
