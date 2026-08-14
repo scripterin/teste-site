@@ -18,8 +18,8 @@ export default function Home() {
 
   if (status === 'authenticated') {
     return (
-      <div className="min-h-screen bg-[#0F0D0D] flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-[#C0392B] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#F4F2ED] flex items-center justify-center">
+        <div className="w-9 h-9 border-2 border-[#1F4B47] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -27,117 +27,144 @@ export default function Home() {
   return (
     <>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+        html, body { background: #F4F2ED; }
 
         .login-card {
-          animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(30px); }
+          from { opacity: 0; transform: translateY(24px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        .paper-bg {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          background-color: #F4F2ED;
+          background-image:
+            radial-gradient(circle at 20% 15%, rgba(31,75,71,0.05), transparent 45%),
+            radial-gradient(circle at 85% 85%, rgba(31,75,71,0.04), transparent 40%);
+        }
+
+        .cross-mark {
+          width: 22px;
+          height: 22px;
+          position: relative;
+          margin: 0 auto 22px;
+        }
+        .cross-mark::before, .cross-mark::after {
+          content: '';
+          position: absolute;
+          background: #1F4B47;
+        }
+        .cross-mark::before {
+          width: 100%; height: 3px;
+          top: 50%; left: 0;
+          transform: translateY(-50%);
+        }
+        .cross-mark::after {
+          height: 100%; width: 3px;
+          left: 50%; top: 0;
+          transform: translateX(-50%);
+        }
+
+        .divider-line {
+          height: 1px;
+          background: #DEDAD1;
         }
 
         .btn-discord {
           width: 100%;
-          padding: 18px;
-          background: #C0392B; /* Schimbat la roșu pentru unitate cu dashboard-ul */
+          padding: 17px;
+          background: #1F4B47;
           border: none;
-          border-radius: 12px;
-          color: white;
-          font-family: 'DM Mono', monospace;
-          font-size: 11px;
+          border-radius: 10px;
+          color: #F4F2ED;
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
           font-weight: 600;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
+          letter-spacing: 0.02em;
           cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 10px 30px rgba(192, 57, 43, 0.2);
+          transition: all 0.25s ease;
         }
 
         .btn-discord:hover {
-          background: #A93226;
-          transform: translateY(-2px);
-          box-shadow: 0 15px 35px rgba(192, 57, 43, 0.3);
+          background: #163934;
+          transform: translateY(-1px);
         }
 
         .btn-discord:active {
           transform: translateY(0);
         }
-
-        .dash-divider {
-          height: 1px;
-          background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
-          margin: 4px 0;
-        }
-
-        .bg-overlay {
-          position: fixed;
-          inset: 0;
-          background: linear-gradient(to bottom, rgba(15, 13, 13, 0.8), rgba(15, 13, 13, 0.95));
-          z-index: -1;
-        }
       `}</style>
 
-      <div style={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div className="paper-bg" />
+
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
-        fontFamily: "'DM Sans', sans-serif",
-        backgroundImage: 'url("/image.png")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        fontFamily: "'Inter', sans-serif",
       }}>
-        {/* Overlay pentru a asigura contrastul textului */}
-        <div className="bg-overlay" />
+        <div className="login-card" style={{ width: '100%', maxWidth: 400 }}>
 
-        <div className="login-card" style={{ width: '100%', maxWidth: 420 }}>
-          
           <div style={{
-            background: 'rgba(18,14,12,0.85)',
-            backdropFilter: 'blur(32px)',
-            WebkitBackdropFilter: 'blur(32px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 24,
-            boxShadow: '0 40px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)',
+            background: '#FFFFFF',
+            border: '1px solid #DEDAD1',
+            borderRadius: 16,
+            boxShadow: '0 24px 60px rgba(30,36,34,0.08)',
             overflow: 'hidden',
           }}>
-            {/* Accent top tipic dashboard-ului */}
-            <div style={{ height: 3, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
+            <div style={{ height: 3, background: '#1F4B47' }} />
 
-            <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', gap: 36 }}>
-              
-              {/* Header Branding */}
+            <div style={{ padding: '48px 40px 40px', display: 'flex', flexDirection: 'column', gap: 30 }}>
+
               <header style={{ textAlign: 'center' }}>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.45em', color: '#C0392B', marginBottom: 14, textTransform: 'uppercase' }}>
-                  Sistem Autentificare
+                <div className="cross-mark" />
+                <p style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 10,
+                  letterSpacing: '0.28em',
+                  color: '#1F4B47',
+                  marginBottom: 12,
+                  textTransform: 'uppercase',
+                }}>
+                  Sistem de autentificare
                 </p>
-                <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 56, letterSpacing: '0.02em', color: '#F0EAE8', lineHeight: 0.9, margin: 0 }}>
-                  ACCES<br /><span style={{ color: '#C0392B' }}>MEDICAL</span>
+                <h1 style={{
+                  fontFamily: "'Fraunces', serif",
+                  fontOpticalSizing: 'auto',
+                  fontWeight: 500,
+                  fontSize: 38,
+                  letterSpacing: '-0.01em',
+                  color: '#1E2422',
+                  lineHeight: 1.1,
+                  margin: 0,
+                }}>
+                  Acces Departament<br /><span style={{ color: '#1F4B47', fontStyle: 'italic' }}>Medical</span>
                 </h1>
               </header>
 
-              <div className="dash-divider" />
+              <div className="divider-line" />
 
-              {/* Mesaj informativ */}
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ 
-                  fontSize: '12px', 
-                  color: 'rgba(240, 234, 232, 0.6)', 
-                  lineHeight: '1.8', 
-                  fontFamily: "'DM Mono', monospace",
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>
-                  Autentifică-te pentru a accesa testele.
-                </p>
-              </div>
+              <p style={{
+                fontSize: 13,
+                color: '#6B7570',
+                lineHeight: 1.65,
+                fontFamily: "'Inter', sans-serif",
+                textAlign: 'center',
+                margin: 0,
+              }}>
+                Autentifică-te cu contul de Discord al comunității pentru a accesa testele de certificare.
+              </p>
 
-              {/* Buton Login - Fără Iconiță */}
-              <button 
+              <button
                 onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
                 className="btn-discord"
               >
@@ -146,15 +173,21 @@ export default function Home() {
 
             </div>
 
-            {/* Footer */}
             <div style={{
-              borderTop: '1px solid rgba(255,255,255,0.03)',
-              padding: '20px 32px',
-              background: 'rgba(0,0,0,0.3)',
+              borderTop: '1px solid #EDEAE2',
+              padding: '16px 32px',
+              background: '#FAF9F6',
               textAlign: 'center',
             }}>
-              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', margin: 0 }}>
-                Departamentul Medical FPlayT &copy; 2026
+              <p style={{
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: 9,
+                letterSpacing: '0.2em',
+                color: '#A6A198',
+                textTransform: 'uppercase',
+                margin: 0,
+              }}>
+                Departamentul Medical FPlayT &middot; 2026
               </p>
             </div>
           </div>
