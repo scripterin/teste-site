@@ -23,7 +23,7 @@ export async function POST(request) {
     if (!session || !session.user) return NextResponse.json({ error: 'Neautorizat.' }, { status: 401 });
 
     const body = await request.json();
-    const { cod, greseli, timpRamas, intrebariGresite, motiv } = body;
+    const { cod, timpRamas, motiv } = body; // ✅ nu mai citim "greseli" și "intrebariGresite" de la client
     if (!cod) return NextResponse.json({ error: 'Cod lipsă.' }, { status: 400 });
 
     await connectDB();
@@ -42,8 +42,12 @@ export async function POST(request) {
     codeDoc.used = true;
     await codeDoc.save();
 
+    // ✅ greșelile reale, numărate din ce a salvat server-ul la fiecare /verify
+    const greseliReale = codeDoc.greseliInregistrate || [];
+    const greseli = greseliReale.length;
+
     const pragGreseli = codeDoc.testSelectat === 'RADIO' ? 2 : 3;
-    
+
     // LOGICA ANTICHEAT NOUĂ
     const esteAnticheat = (motiv === 'anticheat' || motiv === 'refresh_pagina');
     const admis = !esteAnticheat && greseli <= pragGreseli && motiv === 'finalizat';
@@ -53,6 +57,13 @@ export async function POST(request) {
 
     const cooldownPana = getCooldownDate(codeDoc.testSelectat);
     const cooldownStr = cooldownPana.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Bucharest' });
+
+    // ✅ formatăm greșelile din DB pentru embed — răspuns corect real, nu de la client
+    const intrebariGresiteFormatate = greseliReale.map(g => ({
+      intrebare: g.intrebare,
+      raspunsCorect: g.raspunsCorect,
+      raspunsUser: g.raspunsUser,
+    }));
 
     // Trimitere Embeds
     await Promise.allSettled([
@@ -65,9 +76,9 @@ export async function POST(request) {
         username, userId, testName: codeDoc.testSelectat,
         rezultat: rezultatLabel, greseli, timpRamas,
         cooldownPana: admis ? null : cooldownStr,
-        intrebariGresite: intrebariGresite || [],
+        intrebariGresite: intrebariGresiteFormatate,
         esteAnticheat: esteAnticheat,
-        motivAnticheat: esteAnticheat ? explicatieAnticheat : null // Trimitem motivul exact
+        motivAnticheat: esteAnticheat ? explicatieAnticheat : null
       }),
     ]);
 

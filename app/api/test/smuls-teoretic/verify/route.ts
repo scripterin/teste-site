@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { INTREBARI_SMULS } from '@/lib/questions/smuls';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
+import connectDB from '@/lib/mongodb';
+import Code from '@/models/Code';
 
 function seededShuffle<T>(array: T[], seed: string): T[] {
   const arr = [...array];
@@ -19,7 +21,7 @@ function seededShuffle<T>(array: T[], seed: string): T[] {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions as any);
+  const session: any = await getServerSession(authOptions as any);
   if (!session) {
     return NextResponse.json({ error: 'Neautorizat' }, { status: 401 });
   }
@@ -38,6 +40,23 @@ export async function POST(req: NextRequest) {
   }
 
   const corect = raspunsUser.trim() === intrebare.raspunsCorect.trim();
+
+  if (!corect && cod) {
+    await connectDB();
+    await (Code as any).updateOne(
+      { cod: cod.toUpperCase(), userId: session.user.discordId },
+      {
+        $push: {
+          greseliInregistrate: {
+            index,
+            intrebare: intrebare.intrebare,
+            raspunsCorect: intrebare.raspunsCorect,
+            raspunsUser,
+          },
+        },
+      }
+    );
+  }
 
   return NextResponse.json({ corect });
 }
