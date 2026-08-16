@@ -1,6 +1,7 @@
 import './globals.css';
 import { Providers } from './providers';
 import { Inter } from 'next/font/google';
+import ShaderBackground from '@/components/ShaderBackground';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,14 +16,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ro">
-      <body className={`${inter.className} antialiased`} style={{
-        backgroundImage: 'url(/image.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat',
-      }}>
-        <Providers>{children}</Providers>
+      <body className={`${inter.className} antialiased`}>
+        <ShaderBackground />
+        <Providers>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

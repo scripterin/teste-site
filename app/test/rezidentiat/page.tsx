@@ -35,15 +35,14 @@ function TestRezidentiatContent() {
   const stareRef = useRef<'activ' | 'promovat' | 'picat'>('activ');
   const intrebariGresiteRef = useRef<any[]>([]);
   const motivRef = useRef('');
+  const isSubmittingAnswerRef = useRef(false); // ✅ guard anti-spam
 
-  // --- LOGICĂ NOUĂ: VERIFICARE DACA TESTUL E DEJA FOLOSIT (KICK) ---
   const verificaStatusCod = useCallback(async () => {
     if (!cod) return;
     try {
       const res = await fetch(`/api/test/check?cod=${cod}`);
       const data = await res.json();
       if (data.used) {
-        // Dacă testul a fost deja marcat ca folosit (de la un refresh anterior), îl dăm afară
         router.push('/dashboard');
       }
     } catch (e) {
@@ -55,7 +54,6 @@ function TestRezidentiatContent() {
     verificaStatusCod();
   }, [verificaStatusCod]);
 
-  // --- LOGICĂ NOUĂ: DETECTARE REFRESH / ÎNCHIDERE (ANTICHEAT) ---
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (stareRef.current === 'activ' && cod) {
@@ -64,9 +62,8 @@ function TestRezidentiatContent() {
           greseli: greseliRef.current,
           timpRamas: timpRamasRef.current,
           intrebariGresite: intrebariGresiteRef.current,
-          motiv: 'refresh_pagina', // Motivul nou cerut de tine
+          motiv: 'refresh_pagina',
         });
-        // sendBeacon garantează că datele pleacă chiar dacă pagina se închide/reîncarcă
         navigator.sendBeacon('/api/test/submit', payload);
       }
     };
@@ -121,6 +118,9 @@ function TestRezidentiatContent() {
 
   const handleConfirm = async () => {
     if (!optiuneSelectata || feedback || !intrebareCurenta) return;
+    if (isSubmittingAnswerRef.current) return; // ✅ blochează click-uri repetate instant
+    isSubmittingAnswerRef.current = true;
+
     let corect = false;
     let raspunsCorect = '';
     try {
@@ -134,6 +134,7 @@ function TestRezidentiatContent() {
       raspunsCorect = data.raspunsCorect ?? '';
     } catch (e) {
       console.error('Eroare la verificare:', e);
+      isSubmittingAnswerRef.current = false; // ✅ eliberează și la eroare
       return;
     }
 
@@ -154,6 +155,7 @@ function TestRezidentiatContent() {
     setTimeout(async () => {
       setFeedback(null);
       setOptiuneSelectata(null);
+      isSubmittingAnswerRef.current = false; // ✅ eliberează abia la trecerea la întrebarea următoare
       const urmatorulIndex = indexCurent + 1;
       if (urmatorulIndex >= totalIntrebari) {
         terminaTest('finalizat');
@@ -167,7 +169,7 @@ function TestRezidentiatContent() {
   useEffect(() => {
     if ((stare === 'picat' || stare === 'promovat') && !submitting) {
       if (!cod) return;
-      if (motivRef.current === 'refresh_pagina') return; // Nu trimitem dublu dacă a plecat deja prin beacon
+      if (motivRef.current === 'refresh_pagina') return;
 
       setSubmitting(true);
       fetch('/api/test/submit', {
@@ -191,27 +193,27 @@ function TestRezidentiatContent() {
   };
 
   const cardStyle = {
-    background: 'rgba(18,14,12,0.72)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 20,
-    boxShadow: '0 32px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+    background: 'rgba(15,10,10,0.72)',
+    backdropFilter: 'blur(32px) saturate(140%)',
+    WebkitBackdropFilter: 'blur(32px) saturate(140%)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 28,
+    boxShadow: '0 40px 80px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
     overflow: 'hidden',
   };
 
   if (isInitialLoading || !intrebareCurenta) {
     return (
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
           <div style={{
             width: 40, height: 40, borderRadius: '50%',
-            border: '2px solid rgba(192,57,43,0.2)',
-            borderTop: '2px solid #C0392B',
+            border: '2px solid rgba(255,59,78,0.2)',
+            borderTop: '2px solid #FF3B4E',
             animation: 'spin 0.8s linear infinite',
           }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
             Se încarcă...
           </p>
         </div>
@@ -223,32 +225,45 @@ function TestRezidentiatContent() {
     const admis = stare === 'promovat';
     return (
       <>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');`}</style>
-        <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600&display=swap');`}</style>
+        <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative', zIndex: 2 }}>
           <div style={{ width: '100%', maxWidth: 440, ...cardStyle }}>
-            <div style={{ height: 2, background: admis ? 'linear-gradient(to right, transparent, #22c55e, transparent)' : 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
-            <div style={{ padding: '40px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{ padding: '44px 32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 26 }}>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
-                  background: admis ? 'rgba(34,197,94,0.1)' : 'rgba(192,57,43,0.1)',
-                  border: `1px solid ${admis ? 'rgba(34,197,94,0.2)' : 'rgba(192,57,43,0.2)'}`,
+                  background: admis ? 'rgba(34,197,94,0.1)' : 'rgba(255,59,78,0.1)',
+                  border: `1px solid ${admis ? 'rgba(34,197,94,0.25)' : 'rgba(255,59,78,0.3)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: admis ? '0 0 30px rgba(34,197,94,0.15)' : '0 0 30px rgba(255,59,78,0.15)',
                 }}>
                   {admis ? (
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                   ) : (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF3B4E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                   )}
                 </div>
               </div>
               <div>
-                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, letterSpacing: '0.06em', color: '#F0EAE8', margin: 0 }}>
+                <h2 style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 42,
+                  letterSpacing: '-0.01em',
+                  color: admis ? '#E5E1E6' : undefined,
+                  margin: 0,
+                  ...(admis ? {} : {
+                    background: 'linear-gradient(135deg, #FF3B4E 0%, #bf002a 100%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                  }),
+                }}>
                   {admis ? 'ADMIS' : 'RESPINS'}
                 </h2>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
-                  {admis ? 'Felicitări! Ai trecut testul teoretic.' : 
-                    (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii (Tab Switch).' : 
+                <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, color: 'rgba(229,225,230,0.55)', marginTop: 10, lineHeight: 1.6 }}>
+                  {admis ? 'Felicitări! Ai trecut testul teoretic.' :
+                    (motivFinal === 'anticheat' ? 'Sistemul a detectat părăsirea paginii (Tab Switch).' :
                      motivFinal === 'refresh_pagina' ? 'Anticheat: Candidatul a dat refresh la pagină în timpul testului.' :
                      'Ai acumulat numărul maxim de greșeli permise.')}
                 </p>
@@ -258,13 +273,26 @@ function TestRezidentiatContent() {
                   { label: 'Greșeli', value: `${greseli}/3`, red: !admis },
                   { label: 'Timp', value: formatTimp(TIMP_TOTAL - timpRamas), red: false },
                 ].map((stat, i) => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '14px 0' }}>
-                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 6 }}>{stat.label}</p>
-                    <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em', color: stat.red ? '#C0392B' : '#F0EAE8' }}>{stat.value}</p>
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '16px 0' }}>
+                    <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8 }}>{stat.label}</p>
+                    <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 26, color: stat.red ? '#FF3B4E' : '#E5E1E6' }}>{stat.value}</p>
                   </div>
                 ))}
               </div>
-              <button onClick={() => router.push('/dashboard')} style={{ width: '100%', padding: '15px', background: '#C0392B', border: 'none', borderRadius: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 20px rgba(192,57,43,0.35)' }}>
+              <button
+                onClick={() => router.push('/dashboard')}
+                style={{
+                  width: '100%', padding: '16px',
+                  background: 'linear-gradient(135deg, #FF3B4E 0%, #bf002a 100%)',
+                  border: 'none', borderRadius: 14,
+                  fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, fontWeight: 600,
+                  color: '#fff', cursor: 'pointer',
+                  boxShadow: '0 8px 32px rgba(255,59,78,0.35)',
+                  transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(255,59,78,0.5)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(255,59,78,0.35)'; }}
+              >
                 Înapoi la Dashboard
               </button>
             </div>
@@ -279,48 +307,81 @@ function TestRezidentiatContent() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600&display=swap');
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .test-card { animation: fadeIn 0.3s ease both; }
-        .opt-btn { transition: all 0.15s ease; }
-        .opt-btn:hover:not(:disabled) { border-color: rgba(192,57,43,0.5) !important; background: rgba(192,57,43,0.06) !important; }
+        .test-card { animation: fadeIn 0.35s ease both; }
+        .opt-btn { transition: all 0.2s ease; }
+        .opt-btn:hover:not(:disabled) { border-color: rgba(255,59,78,0.5) !important; background: rgba(255,59,78,0.06) !important; }
       `}</style>
-      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px' }}>
-        <div className="test-card" style={{ width: '100%', maxWidth: 500, ...cardStyle }}>
-          <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
-          <div style={{ padding: '28px 28px 24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 24 }}>
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 40px', position: 'relative', zIndex: 2 }}>
+        <div className="test-card" style={{ width: '100%', maxWidth: 520, ...cardStyle }}>
+          <div style={{ padding: '32px 30px 28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 22, borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 26 }}>
               <div>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Timp Rămas</p>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em', color: timpRamas < 60 ? '#C0392B' : '#F0EAE8' }}>{formatTimp(timpRamas)}</p>
+                <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 6 }}>Timp Rămas</p>
+                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 26, color: timpRamas < 60 ? '#FF3B4E' : '#E5E1E6' }}>{formatTimp(timpRamas)}</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 4 }}>Greșeli</p>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.05em', color: '#C0392B' }}>{greseli}/3</p>
+                <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 6 }}>Greșeli</p>
+                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 26, color: '#FF3B4E' }}>{greseli}/3</p>
               </div>
             </div>
-            <div style={{ marginBottom: 20 }}>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500, color: '#F0EAE8', lineHeight: 1.5 }}>{intrebareCurenta.intrebare}</p>
+
+            <div style={{ marginBottom: 22 }}>
+              <p style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 16, fontWeight: 500, color: '#E5E1E6', lineHeight: 1.55 }}>{intrebareCurenta.intrebare}</p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 26 }}>
               {intrebareCurenta.optiuni.map((optiune, i) => {
                 const isActive = optiuneSelectata === optiune;
                 const litera = String.fromCharCode(65 + i);
                 return (
-                  <button key={i} className="opt-btn" disabled={!!feedback} onClick={() => setOptiuneSelectata(optiune)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 12, textAlign: 'left', background: isActive ? 'rgba(192,57,43,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isActive ? '#C0392B' : 'rgba(255,255,255,0.07)'}`, cursor: feedback ? 'default' : 'pointer' }}>
-                    <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500, background: isActive ? 'rgba(192,57,43,0.2)' : 'rgba(255,255,255,0.05)', color: isActive ? '#C0392B' : 'rgba(255,255,255,0.3)' }}>{litera}</span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 400, color: isActive ? '#F0EAE8' : 'rgba(255,255,255,0.7)' }}>{optiune}</span>
+                  <button
+                    key={i}
+                    className="opt-btn"
+                    disabled={!!feedback}
+                    onClick={() => setOptiuneSelectata(optiune)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '13px 15px', borderRadius: 14, textAlign: 'left',
+                      background: isActive ? 'linear-gradient(135deg, rgba(255,59,78,0.16) 0%, rgba(191,0,42,0.1) 100%)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${isActive ? '#FF3B4E' : 'rgba(255,255,255,0.08)'}`,
+                      cursor: feedback ? 'default' : 'pointer',
+                      boxShadow: isActive ? '0 4px 20px rgba(255,59,78,0.15)' : 'none',
+                    }}
+                  >
+                    <span style={{
+                      flexShrink: 0, width: 28, height: 28, borderRadius: 8,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 500,
+                      background: isActive ? 'rgba(255,59,78,0.2)' : 'rgba(255,255,255,0.05)',
+                      color: isActive ? '#FF3B4E' : 'rgba(255,255,255,0.35)',
+                    }}>{litera}</span>
+                    <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13.5, fontWeight: 400, color: isActive ? '#E5E1E6' : 'rgba(229,225,230,0.75)' }}>{optiune}</span>
                   </button>
                 );
               })}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ width: '100%', height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${progress}%`, background: '#C0392B', transition: 'width 0.5s ease' }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #FF3B4E, #bf002a)', transition: 'width 0.5s ease', boxShadow: '0 0 12px rgba(255,59,78,0.5)' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{indexCurent + 1} / {totalIntrebari}</span>
-                <button onClick={handleConfirm} disabled={!optiuneSelectata || !!feedback} style={{ padding: '10px 24px', borderRadius: 10, background: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.05)' : '#C0392B', color: '#fff', cursor: 'pointer' }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>{indexCurent + 1} / {totalIntrebari}</span>
+                <button
+                  onClick={handleConfirm}
+                  disabled={!optiuneSelectata || !!feedback}
+                  style={{
+                    padding: '11px 26px', borderRadius: 12, border: 'none',
+                    fontFamily: "'Hanken Grotesk', sans-serif", fontSize: 13, fontWeight: 600,
+                    background: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #FF3B4E 0%, #bf002a 100%)',
+                    color: (!optiuneSelectata || !!feedback) ? 'rgba(255,255,255,0.25)' : '#fff',
+                    cursor: (!optiuneSelectata || !!feedback) ? 'not-allowed' : 'pointer',
+                    boxShadow: (!optiuneSelectata || !!feedback) ? 'none' : '0 6px 24px rgba(255,59,78,0.35)',
+                    transition: 'all 0.25s ease',
+                  }}
+                >
                   {feedback ? 'verificare...' : 'Următoarea →'}
                 </button>
               </div>

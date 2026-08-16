@@ -48,21 +48,35 @@ export default function TestButtons({ selected, onSelect }) {
               alignItems: 'center',
               justifyContent: 'flex-start',
               gap: '10px',
-              padding: '12px 16px',
-              borderRadius: '999px',
-              backgroundColor: isSelected ? 'rgba(192,57,43,0.12)' : 'rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: `1px solid ${isSelected ? 'rgba(192,57,43,0.6)' : 'rgba(255,255,255,0.07)'}`,
-              color: isSelected ? '#C0392B' : 'rgba(255,255,255,0.35)',
+              padding: '13px 16px',
+              borderRadius: '14px',
+              background: isSelected
+                ? 'linear-gradient(135deg, rgba(255,59,78,0.16) 0%, rgba(191,0,42,0.10) 100%)'
+                : 'rgba(255,255,255,0.03)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: `1px solid ${isSelected ? 'rgba(255,59,78,0.55)' : 'rgba(255,255,255,0.07)'}`,
+              color: isSelected ? '#FF3B4E' : 'rgba(229,225,230,0.4)',
               fontSize: '11px',
               fontWeight: '600',
               textTransform: 'uppercase',
-              letterSpacing: '0.1em',
+              letterSpacing: '0.08em',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              fontFamily: "'DM Mono', monospace",
-              boxShadow: isSelected ? '0 0 16px rgba(192,57,43,0.15)' : 'none',
+              transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+              fontFamily: "'JetBrains Mono', monospace",
+              boxShadow: isSelected ? '0 4px 20px rgba(255,59,78,0.2)' : 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.borderColor = 'rgba(255,59,78,0.3)';
+                e.currentTarget.style.background = 'rgba(255,59,78,0.05)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+              }
             }}
           >
             <div
@@ -70,13 +84,13 @@ export default function TestButtons({ selected, onSelect }) {
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                backgroundColor: isSelected ? '#C0392B' : 'rgba(255,255,255,0.1)',
+                backgroundColor: isSelected ? '#FF3B4E' : 'rgba(255,255,255,0.12)',
                 flexShrink: 0,
-                boxShadow: isSelected ? '0 0 8px #C0392B' : 'none',
-                transition: 'all 0.2s ease',
+                boxShadow: isSelected ? '0 0 8px #FF3B4E' : 'none',
+                transition: 'all 0.25s ease',
               }}
             />
-            <test.Icon color={isSelected ? '#C0392B' : 'rgba(255,255,255,0.3)'} />
+            <test.Icon color={isSelected ? '#FF3B4E' : 'rgba(229,225,230,0.35)'} />
             <span>{test.label}</span>
           </button>
         );

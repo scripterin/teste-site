@@ -3,7 +3,10 @@ import { authOptions } from '@/lib/authOptions';
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Code from '@/models/Code';
+import Cooldown from '@/models/Cooldown';
 import { sendCodeEmbed } from '@/lib/discordBot';
+
+const COOLDOWN_MS = 90 * 1000; // 1 minut și 30 secunde
 
 function generateCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -41,10 +44,30 @@ export async function POST(request) {
     const username = session.user.username || session.user.name;
     const now      = new Date();
 
-    // Șterge toate codurile vechi ale userului
+    const cooldownDoc = await Cooldown.findOne({ userId });
+    if (cooldownDoc) {
+      const elapsed = now.getTime() - cooldownDoc.lastRequestAt.getTime();
+      if (elapsed < COOLDOWN_MS) {
+        const retryAfterSeconds = Math.ceil((COOLDOWN_MS - elapsed) / 1000);
+        return NextResponse.json(
+          {
+            error: `Mai trebuie să aștepți ${retryAfterSeconds} secunde înainte de a solicita alt cod.`,
+            retryAfterSeconds,
+          },
+          { status: 429 }
+        );
+      }
+    }
+
+    // Marcăm momentul cererii ÎNAINTE de a genera codul
+    await Cooldown.findOneAndUpdate(
+      { userId },
+      { userId, lastRequestAt: now },
+      { upsert: true }
+    );
+
     await Code.deleteMany({ userId });
 
-    // Generează cod unic
     let cod;
     let isUnique = false;
     let attempts = 0;
@@ -63,8 +86,7 @@ export async function POST(request) {
       );
     }
 
-
-    const CODE_EXPIRY_MS = 5 * 60 * 1000; // 5 minute
+    const CODE_EXPIRY_MS = 5 * 60 * 1000;
     const expiresAt = new Date(now.getTime() + CODE_EXPIRY_MS);
 
     await Code.create({

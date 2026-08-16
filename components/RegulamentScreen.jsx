@@ -1,83 +1,47 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 const ARTICLES = [
   {
-    title: "Art. 1 — Confidențialitate",
+    title: "Confidențialitate",
     text: "Toate materialele, întrebările și informațiile prezentate în cadrul testelor sunt strict confidențiale. Este interzisă reproducerea, distribuirea sau publicarea conținutului sub orice formă.",
   },
   {
-    title: "Art. 2 — Comportament în timpul testului",
+    title: "Comportament în timpul testului",
     text: "Candidații sunt obligați să completeze testul individual, fără ajutor extern. Utilizarea surselor terțe sau comunicarea cu alte persoane în timpul testului atrage descalificarea imediată.",
   },
   {
-    title: "Art. 3 — Codul de acces",
+    title: "Codul de acces",
     text: "Codul de acces este personal și netransmisibil. Utilizarea unui cod aparținând altei persoane constituie o încălcare gravă și poate atrage sancțiuni disciplinare.",
   },
   {
-    title: "Art. 4 — Rezultate și notare",
+    title: "Rezultate și notare",
     text: "Rezultatele testului sunt înregistrate automat la momentul finalizării. Orice tentativă de manipulare a sistemului sau de falsificare a rezultatelor va fi raportată ierarhic.",
   },
   {
-    title: "Art. 5 — Acceptarea regulamentului",
-    text: "Prin apăsarea butonului de acceptare, confirmați că ați citit, înțeles și sunteți de acord cu toate prevederile prezentului regulament.",
+    title: "Acceptarea regulamentului",
+    text: "Prin bifarea tuturor punctelor și apăsarea butonului de acceptare, confirmați că ați citit, înțeles și sunteți de acord cu toate prevederile prezentului regulament.",
   },
 ];
 
 export default function RegulamentScreen({ onAccept }) {
-  const [articles, setArticles] = useState([]);
-  const [done, setDone] = useState(false);
+  const [checked, setChecked] = useState(() => new Array(ARTICLES.length).fill(false));
   const [exiting, setExiting] = useState(false);
-  const scrollRef = useRef(null);
 
-  useEffect(() => {
-    let artIdx = 0;
-    let charInSection = 0;
-    let phase = 'title';
-    let timeout;
-    const rendered = [];
+  const toggleCheck = (i) => {
+    setChecked(prev => {
+      const next = [...prev];
+      next[i] = !next[i];
+      return next;
+    });
+  };
 
-    function typeNext() {
-      if (artIdx >= ARTICLES.length) {
-        setDone(true);
-        return;
-      }
-      const art = ARTICLES[artIdx];
-      if (phase === 'title') {
-        if (charInSection === 0) rendered.push({ title: '', text: '' });
-        if (charInSection < art.title.length) {
-          rendered[rendered.length - 1].title = art.title.slice(0, charInSection + 1);
-          charInSection++;
-          setArticles([...rendered]);
-          if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-          timeout = setTimeout(typeNext, 28);
-        } else {
-          charInSection = 0;
-          phase = 'text';
-          timeout = setTimeout(typeNext, 60);
-        }
-      } else {
-        if (charInSection < art.text.length) {
-          rendered[rendered.length - 1].text = art.text.slice(0, charInSection + 1);
-          charInSection++;
-          setArticles([...rendered]);
-          if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-          timeout = setTimeout(typeNext, 18);
-        } else {
-          charInSection = 0;
-          phase = 'title';
-          artIdx++;
-          timeout = setTimeout(typeNext, 200);
-        }
-      }
-    }
-
-    const start = setTimeout(typeNext, 500);
-    return () => { clearTimeout(start); clearTimeout(timeout); };
-  }, []);
+  const allChecked = checked.every(Boolean);
+  const checkedCount = checked.filter(Boolean).length;
 
   const handleAccept = () => {
+    if (!allChecked) return;
     setExiting(true);
     setTimeout(onAccept, 650);
   };
@@ -85,57 +49,133 @@ export default function RegulamentScreen({ onAccept }) {
   return (
     <>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-        .reg-scroll::-webkit-scrollbar {
-          display: none;
+        .reg-card-in {
+          animation: cardIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes cardIn {
+          from { opacity: 0; transform: translateY(20px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .cursor-blink {
-          display: inline-block;
-          width: 2px;
-          height: 1em;
-          background: #C0392B;
-          margin-left: 2px;
-          vertical-align: text-bottom;
-          animation: cursorBlink 0.8s step-end infinite;
+        .reg-scroll::-webkit-scrollbar { display: none; }
+
+        .article-row {
+          animation: rowIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+          display: flex;
+          align-items: flex-start;
+          gap: 11px;
+          padding: 11px 12px;
+          border-radius: 12px;
+          border: 1px solid rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.02);
+          cursor: pointer;
+          transition: all 0.25s ease;
         }
-        
-        @keyframes cursorBlink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        @keyframes rowIn {
+          from { opacity: 0; transform: translateX(-10px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .article-row:hover {
+          border-color: rgba(255,59,78,0.3);
+          background: rgba(255,59,78,0.04);
+        }
+        .article-row.checked {
+          border-color: rgba(255,59,78,0.4);
+          background: linear-gradient(135deg, rgba(255,59,78,0.08) 0%, rgba(191,0,42,0.04) 100%);
         }
 
-        .alert-pulse {
-          animation: pulseRed 2s infinite;
+        .check-box {
+          flex-shrink: 0;
+          width: 19px;
+          height: 19px;
+          border-radius: 6px;
+          border: 1.5px solid rgba(255,255,255,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          margin-top: 1px;
         }
-
-        @keyframes pulseRed {
-          0% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
-          70% { box-shadow: 0 0 0 10px rgba(192, 57, 43, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+        .check-box.checked {
+          background: linear-gradient(135deg, #FF3B4E 0%, #bf002a 100%);
+          border-color: #FF3B4E;
+          box-shadow: 0 0 10px rgba(255,59,78,0.4);
         }
 
         .accept-btn {
           width: 100%;
-          padding: 15px;
-          background: #C0392B;
+          padding: 13px;
           border: none;
-          border-radius: 12px;
-          color: #fff;
-          font-family: 'DM Mono', monospace;
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
+          border-radius: 13px;
+          font-family: 'Hanken Grotesk', sans-serif;
+          font-size: 12.5px;
+          font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
-          animation: fadeUp 0.4s ease both;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .accept-btn:hover { background: #A93226; transform: translateY(-1px); }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
+        .accept-btn.active {
+          background: linear-gradient(135deg, #FF3B4E 0%, #bf002a 100%);
+          color: #fff;
+          box-shadow: 0 6px 24px rgba(255,59,78,0.35);
+        }
+        .accept-btn.active:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 32px rgba(255,59,78,0.5);
+        }
+        .accept-btn.inactive {
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.06);
+          color: rgba(255,255,255,0.25);
+          cursor: not-allowed;
+        }
+
+        .progress-track {
+          height: 3px;
+          background: rgba(255,255,255,0.06);
+          border-radius: 999px;
+          overflow: hidden;
+        }
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #FF3B4E, #bf002a);
+          transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+          box-shadow: 0 0 10px rgba(255,59,78,0.5);
+        }
+
+        .warn-strip {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 4px 2px 14px;
+          margin-bottom: 10px;
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .warn-icon-ring {
+          flex-shrink: 0;
+          width: 30px;
+          height: 30px;
+          border-radius: 9px;
+          background: rgba(255,59,78,0.1);
+          border: 1px solid rgba(255,59,78,0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        }
+        .warn-icon-ring::after {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 11px;
+          border: 1px solid rgba(255,59,78,0.3);
+          animation: warnPing 2s ease-out infinite;
+        }
+        @keyframes warnPing {
+          0%   { transform: scale(0.9); opacity: 0.8; }
+          100% { transform: scale(1.35); opacity: 0; }
         }
       `}</style>
 
@@ -144,150 +184,156 @@ export default function RegulamentScreen({ onAccept }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '40px 24px',
+        padding: '16px',
         opacity: exiting ? 0 : 1,
-        transform: exiting ? 'translateY(-24px)' : 'translateY(0)',
+        transform: exiting ? 'translateY(-20px)' : 'translateY(0)',
         transition: 'opacity 0.6s ease, transform 0.6s ease',
         pointerEvents: exiting ? 'none' : 'auto',
+        position: 'relative',
+        zIndex: 2,
       }}>
-        <div style={{
-          background: 'rgba(18,14,12,0.92)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20,
+        <div className="reg-card-in" style={{
+          background: 'rgba(15, 10, 10, 0.72)',
+          backdropFilter: 'blur(32px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(140%)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 24,
           overflow: 'hidden',
           width: '100%',
-          maxWidth: 460,
-          boxShadow: '0 32px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)',
+          maxWidth: 500,
+          maxHeight: 'calc(100vh - 32px)',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 40px 80px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
         }}>
-          <div style={{ height: 2, background: 'linear-gradient(to right, transparent, #C0392B, transparent)' }} />
 
-          <div style={{ padding: '36px 32px' }}>
-            
-            {/* --- SECTIUNEA NOUA DE AVERTIZARE --- */}
-            <div className="alert-pulse" style={{
-              background: 'rgba(192, 57, 43, 0.1)',
-              border: '1px solid rgba(192, 57, 43, 0.3)',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '24px'
-            }}>
-              <div style={{
-                fontSize: '20px',
-                color: '#C0392B',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                ⚠️
-              </div>
-              <div>
-                <p style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  color: '#C0392B',
-                  margin: 0,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase'
-                }}>
-                  ATENȚIE MAXIMĂ
-                </p>
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: '11px',
-                  color: 'rgba(240,234,232,0.9)',
-                  margin: '2px 0 0 0',
-                  lineHeight: '1.2'
-                }}>
-                  NU schimbați fereastra sau apăsați <span style={{ color: '#C0392B', fontWeight: 'bold' }}>ALT+TAB</span> pe durata testului.
-                </p>
-              </div>
-            </div>
-            {/* --- SFARSIT SECTIUNE AVERTIZARE --- */}
-
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '0.3em', color: '#C0392B', marginBottom: 8, textTransform: 'uppercase' }}>
-              Departamentul Medical FPlayT
-            </p>
+          <div style={{ padding: '26px 26px 20px', display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
 
             <h1 style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 46,
-              letterSpacing: '0.04em',
-              color: '#F0EAE8',
-              lineHeight: 1,
-              marginBottom: 28,
-              whiteSpace: 'nowrap',
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontWeight: 700,
+              fontSize: 28,
+              letterSpacing: '-0.02em',
+              color: '#E5E1E6',
+              lineHeight: 1.1,
+              margin: '0 0 4px',
+              flexShrink: 0,
             }}>
-              REGULA<span style={{ color: '#C0392B' }}>MENT</span>
+              Regula<span style={{
+                background: 'linear-gradient(135deg, #FF3B4E 0%, #bf002a 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+              }}>ment</span>
             </h1>
 
-            <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent)', marginBottom: 24 }} />
+            <p style={{
+              fontFamily: "'Hanken Grotesk', sans-serif",
+              fontSize: 12,
+              color: 'rgba(229,225,230,0.5)',
+              margin: '0 0 16px',
+              lineHeight: 1.4,
+              flexShrink: 0,
+            }}>
+              Bifează fiecare punct pentru a confirma că l-ai citit și înțeles.
+            </p>
+
+            <div className="warn-strip" style={{ flexShrink: 0 }}>
+              <div className="warn-icon-ring">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF3B4E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </div>
+              <p style={{
+                fontFamily: "'Hanken Grotesk', sans-serif",
+                fontSize: 11.5,
+                color: 'rgba(229,225,230,0.75)',
+                margin: 0,
+                lineHeight: 1.4,
+              }}>
+                <span style={{ color: '#FF3B4E', fontWeight: 600 }}>Nu schimba fereastra</span> sau apăsa ALT+TAB pe durata testului — atrage descalificare automată.
+              </p>
+            </div>
 
             <div
               className="reg-scroll"
-              ref={scrollRef}
               style={{
-                maxHeight: 260, // Am micsorat putin pentru a face loc avertizarii
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 7,
+                marginBottom: 14,
                 overflowY: 'auto',
                 scrollbarWidth: 'none',
-                paddingRight: 0,
-                marginBottom: 24,
+                minHeight: 0,
               }}
             >
-              {articles.map((art, i) => (
-                <div key={i} style={{ marginBottom: 20 }}>
-                  <div style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 9,
-                    letterSpacing: '0.2em',
-                    color: '#C0392B',
-                    textTransform: 'uppercase',
-                    marginBottom: 6,
-                  }}>
-                    {art.title}
-                  </div>
-                  <div style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 12.5,
-                    lineHeight: 1.7,
-                    color: 'rgba(240,234,232,0.7)',
-                  }}>
-                    {art.text}
-                    {i === articles.length - 1 && !done && (
-                      <span className="cursor-blink" />
+              {ARTICLES.map((art, i) => (
+                <div
+                  key={i}
+                  className={`article-row${checked[i] ? ' checked' : ''}`}
+                  style={{ animationDelay: `${i * 0.06}s` }}
+                  onClick={() => toggleCheck(i)}
+                >
+                  <div className={`check-box${checked[i] ? ' checked' : ''}`}>
+                    {checked[i] && (
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
                     )}
+                  </div>
+                  <div>
+                    <p style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 9.5,
+                      letterSpacing: '0.08em',
+                      color: checked[i] ? '#FF3B4E' : 'rgba(255,255,255,0.35)',
+                      textTransform: 'uppercase',
+                      margin: '0 0 3px',
+                      transition: 'color 0.25s ease',
+                    }}>
+                      Art. {i + 1} — {art.title}
+                    </p>
+                    <p style={{
+                      fontFamily: "'Hanken Grotesk', sans-serif",
+                      fontSize: 11.5,
+                      lineHeight: 1.5,
+                      color: 'rgba(229,225,230,0.65)',
+                      margin: 0,
+                    }}>
+                      {art.text}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {done && (
-              <button className="accept-btn" onClick={handleAccept}>
-                ✓ &nbsp;Accept regulamentul
-              </button>
-            )}
-          </div>
+            <div style={{ marginBottom: 14, flexShrink: 0 }}>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${(checkedCount / ARTICLES.length) * 100}%` }} />
+              </div>
+              <p style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9,
+                letterSpacing: '0.1em',
+                color: 'rgba(255,255,255,0.3)',
+                textTransform: 'uppercase',
+                marginTop: 8,
+                textAlign: 'center',
+              }}>
+                {checkedCount} / {ARTICLES.length} confirmate
+              </p>
+            </div>
 
-          <div style={{
-            borderTop: '1px solid rgba(255,255,255,0.04)',
-            padding: '12px 32px',
-            background: 'rgba(0,0,0,0.2)',
-            textAlign: 'center',
-          }}>
-            <p style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 8,
-              letterSpacing: '0.25em',
-              color: 'rgba(255,255,255,0.1)',
-              textTransform: 'uppercase',
-            }}>
-              Departamentul Medical FPlayT
-            </p>
+            <button
+              className={`accept-btn ${allChecked ? 'active' : 'inactive'}`}
+              onClick={handleAccept}
+              disabled={!allChecked}
+              style={{ flexShrink: 0 }}
+            >
+              {allChecked ? 'Accept regulamentul' : 'Bifează toate punctele'}
+            </button>
           </div>
         </div>
       </div>
