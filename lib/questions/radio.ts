@@ -149,26 +149,4 @@ export const INTREBARI_RADIO: Intrebare[] = [
     ],
     raspunsCorect: 'M-CALLSIGN, 10-99'
   },
-  {
-    id: 14,
-    intrebare: 'Codul de asistență 0 înseamnă:',
-    optiuni: [
-      'Doar o unitate să vină',
-      'Zonă liberă, se poate interveni',
-      'Toate unitățile la locație',
-      'Asistență suplimentară'
-    ],
-    raspunsCorect: 'Toate unitățile la locație'
-  },
-  {
-    id: 15,
-    intrebare: 'Se transmite că doar o unitate trebuie să se prezinte la intervenție. Ce cod de asistență este folosit?',
-    optiuni: [
-      '6',
-      '78',
-      '0',
-      '4'
-    ],
-    raspunsCorect: '4'
-  },
 ];
