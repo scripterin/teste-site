@@ -137,5 +137,38 @@ export const INTREBARI_RADIO: Intrebare[] = [
       'M-CALLSIGN, 10-33'
     ],
     raspunsCorect: 'M-CALLSIGN, 10-50 major/minor, nu mai pot ajunge'
-  }
+  },
+  {
+    id: 13,
+    intrebare: 'Ai preluat un apel, ai ajuns la el, ai încercat să ajungi la pacient, dar accesul tău către acesta este imposibil de realizat. Cum anunți pe stație?',
+    optiuni: [
+      'M-CALLSIGN, 10-11',
+      'M-CALLSIGN, 10-55',
+      'M-CALLSIGN, 10-99',
+      'M-CALLSIGN, 10-1'
+    ],
+    raspunsCorect: 'M-CALLSIGN, 10-99'
+  },
+  {
+    id: 14,
+    intrebare: 'Codul de asistență 0 înseamnă:',
+    optiuni: [
+      'Doar o unitate să vină',
+      'Zonă liberă, se poate interveni',
+      'Toate unitățile la locație',
+      'Asistență suplimentară'
+    ],
+    raspunsCorect: 'Toate unitățile la locație'
+  },
+  {
+    id: 15,
+    intrebare: 'Se transmite că doar o unitate trebuie să se prezinte la intervenție. Ce cod de asistență este folosit?',
+    optiuni: [
+      '6',
+      '78',
+      '0',
+      '4'
+    ],
+    raspunsCorect: '4'
+  },
 ];
