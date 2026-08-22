@@ -120,12 +120,12 @@ export const INTREBARI_RADIO: Intrebare[] = [
     id: 11,
     intrebare: 'Primești informația că zona este sigură și poți interveni. Ce cod de asistență corespunde?',
     optiuni: [
-      '5',
-      '6',
-      '7',
-      '0'
+      'Cod 5',
+      'Cod 6',
+      'Cod 7',
+      'Cod 0'
     ],
-    raspunsCorect: '6'
+    raspunsCorect: 'Cod 6'
   },
   {
     id: 12,
