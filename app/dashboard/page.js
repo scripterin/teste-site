@@ -93,7 +93,6 @@ export default function Dashboard() {
 
   const handleAcceptRegulament = () => setRegulamentAccepted(true);
 
-  // ✅ Verifică pe server dacă mai există un cooldown activ (supraviețuiește refresh/reintrare)
   useEffect(() => {
     const checkCooldownStatus = async () => {
       try {
